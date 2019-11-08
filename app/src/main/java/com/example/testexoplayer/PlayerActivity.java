@@ -169,7 +169,7 @@ public class PlayerActivity extends Activity implements  PlaybackPreparer, Playe
         }
 
         setContentView(R.layout.player_activity);
-        View rootView = findViewById(R.id.root);
+        
         debugRootView = findViewById(R.id.controls_root);
         debugTextView = findViewById(R.id.debug_text_view);
 
@@ -632,12 +632,12 @@ public class PlayerActivity extends Activity implements  PlaybackPreparer, Playe
                 }
                 button.setText(label);
                 button.setTag(i);
-                button.setOnClickListener(view -> setOnTrackSelectionBtnClickListener(view));
+                button.setOnClickListener(this::setOnTrackSelectionBtnClickListener);
                 debugRootView.addView(button);
             }
         }
     }
-    
+
     private void setOnTrackSelectionBtnClickListener(View view){
         MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         if (mappedTrackInfo != null) {
