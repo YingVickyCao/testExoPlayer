@@ -1,7 +1,8 @@
-package com.example.testexoplayer;
+package com.example.testexoplayer.download;
 
 import android.content.Intent;
 
+import com.example.testexoplayer.player.PlayerActivity;
 import com.google.android.exoplayer2.util.Assertions;
 
 public final class DrmInfo {

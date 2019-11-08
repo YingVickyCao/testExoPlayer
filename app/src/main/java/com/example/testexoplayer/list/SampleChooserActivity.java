@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.testexoplayer;
+package com.example.testexoplayer.list;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -28,6 +28,11 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.example.testexoplayer.player.PlayerActivity;
+import com.example.testexoplayer.R;
+import com.example.testexoplayer.download.DemoApplication;
+import com.example.testexoplayer.download.DemoDownloadService;
+import com.example.testexoplayer.download.DownloadTracker;
 import com.google.android.exoplayer2.offline.DownloadService;
 
 import java.io.IOException;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.testexoplayer;
+package com.example.testexoplayer.download;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -28,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.testexoplayer.R;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.offline.ActionFile;
 import com.google.android.exoplayer2.offline.DownloadAction;

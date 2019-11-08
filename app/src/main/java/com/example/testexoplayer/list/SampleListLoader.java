@@ -1,10 +1,11 @@
-package com.example.testexoplayer;
+package com.example.testexoplayer.list;
 
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.JsonReader;
 
+import com.example.testexoplayer.download.DrmInfo;
 import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSourceInputStream;

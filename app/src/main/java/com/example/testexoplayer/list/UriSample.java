@@ -1,8 +1,11 @@
-package com.example.testexoplayer;
+package com.example.testexoplayer.list;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+
+import com.example.testexoplayer.player.PlayerActivity;
+import com.example.testexoplayer.download.DrmInfo;
 
 public final class UriSample extends Sample {
 

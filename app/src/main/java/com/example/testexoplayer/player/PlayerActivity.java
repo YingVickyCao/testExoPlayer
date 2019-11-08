@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.testexoplayer;
+package com.example.testexoplayer.player;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -32,6 +32,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.testexoplayer.R;
+import com.example.testexoplayer.download.DemoApplication;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.C.ContentType;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -169,7 +171,7 @@ public class PlayerActivity extends Activity implements  PlaybackPreparer, Playe
         }
 
         setContentView(R.layout.player_activity);
-        
+
         debugRootView = findViewById(R.id.controls_root);
         debugTextView = findViewById(R.id.debug_text_view);
 

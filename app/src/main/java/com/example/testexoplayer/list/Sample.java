@@ -1,7 +1,10 @@
-package com.example.testexoplayer;
+package com.example.testexoplayer.list;
 
 import android.content.Context;
 import android.content.Intent;
+
+import com.example.testexoplayer.player.PlayerActivity;
+import com.example.testexoplayer.download.DrmInfo;
 
 abstract class Sample {
     public final String name;

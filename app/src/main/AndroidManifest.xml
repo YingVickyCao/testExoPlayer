@@ -19,7 +19,7 @@
     <uses-sdk />
 
     <application
-        android:name=".DemoApplication"
+        android:name=".download.DemoApplication"
         android:allowBackup="false"
         android:banner="@drawable/ic_banner"
         android:icon="@mipmap/ic_launcher"
@@ -27,7 +27,7 @@
         android:largeHeap="true">
 
         <activity
-            android:name=".SampleChooserActivity"
+            android:name=".list.SampleChooserActivity"
             android:configChanges="keyboardHidden"
             android:label="@string/app_name">
             <intent-filter>
@@ -53,7 +53,7 @@
         </activity>
 
         <activity
-            android:name=".PlayerActivity"
+            android:name=".player.PlayerActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:label="@string/app_name"
             android:launchMode="singleTop"
@@ -75,7 +75,7 @@
         </activity>
 
         <service
-            android:name=".DemoDownloadService"
+            android:name=".download.DemoDownloadService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.downloadService.action.RESTART" />

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.testexoplayer;
+package com.example.testexoplayer.download;
 
 import android.app.Application;
 
+import com.example.testexoplayer.BuildConfig;
 import com.google.android.exoplayer2.offline.DownloadManager;
 import com.google.android.exoplayer2.offline.DownloaderConstructorHelper;
 import com.google.android.exoplayer2.upstream.DataSource;

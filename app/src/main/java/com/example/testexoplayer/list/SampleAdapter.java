@@ -1,10 +1,12 @@
-package com.example.testexoplayer;
+package com.example.testexoplayer.list;
 
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import com.example.testexoplayer.R;
 
 import java.util.Collections;
 import java.util.List;
