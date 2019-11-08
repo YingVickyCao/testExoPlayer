@@ -69,6 +69,7 @@ public class DownloadTracker implements DownloadManager.Listener {
     /**
      * Listens for changes in the tracked downloads.
      */
+
     public interface Listener {
 
         /**

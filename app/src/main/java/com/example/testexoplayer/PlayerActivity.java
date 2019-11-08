@@ -24,7 +24,6 @@ import android.os.Bundle;
 import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -90,8 +89,7 @@ import java.util.UUID;
 /**
  * An activity that plays media using {@link SimpleExoPlayer}.
  */
-public class PlayerActivity extends Activity
-        implements OnClickListener, PlaybackPreparer, PlayerControlView.VisibilityListener {
+public class PlayerActivity extends Activity implements  PlaybackPreparer, PlayerControlView.VisibilityListener {
 
     public static final String DRM_SCHEME_EXTRA = "drm_scheme";
     public static final String DRM_LICENSE_URL_EXTRA = "drm_license_url";
@@ -172,7 +170,6 @@ public class PlayerActivity extends Activity
 
         setContentView(R.layout.player_activity);
         View rootView = findViewById(R.id.root);
-        rootView.setOnClickListener(this);
         debugRootView = findViewById(R.id.controls_root);
         debugTextView = findViewById(R.id.debug_text_view);
 
@@ -297,30 +294,6 @@ public class PlayerActivity extends Activity
     public boolean dispatchKeyEvent(KeyEvent event) {
         // See whether the player view wants to handle media or DPAD keys events.
         return playerView.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
-    }
-
-    // OnClickListener methods
-
-    @Override
-    public void onClick(View view) {
-        if (view.getParent() == debugRootView) {
-            MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
-            if (mappedTrackInfo != null) {
-                CharSequence title = ((Button) view).getText();
-                int rendererIndex = (int) view.getTag();
-                int rendererType = mappedTrackInfo.getRendererType(rendererIndex);
-                boolean allowAdaptiveSelections =
-                        rendererType == C.TRACK_TYPE_VIDEO
-                                || (rendererType == C.TRACK_TYPE_AUDIO
-                                && mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_VIDEO)
-                                == MappedTrackInfo.RENDERER_SUPPORT_NO_TRACKS);
-                Pair<AlertDialog, TrackSelectionView> dialogPair =
-                        TrackSelectionView.getDialog(this, title, trackSelector, rendererIndex);
-                dialogPair.second.setShowDisableOption(true);
-                dialogPair.second.setAllowAdaptiveSelections(allowAdaptiveSelections);
-                dialogPair.first.show();
-            }
-        }
     }
 
     // PlaybackControlView.PlaybackPreparer implementation
@@ -470,7 +443,7 @@ public class PlayerActivity extends Activity
             player.seekTo(startWindow, startPosition);
         }
         player.prepare(mediaSource, !haveStartPosition, false);
-        updateButtonVisibilities();
+        updateTrackSelectionBtnsVisibilities();
     }
 
     private MediaSource buildMediaSource(Uri uri) {
@@ -628,7 +601,7 @@ public class PlayerActivity extends Activity
 
     // User controls
 
-    private void updateButtonVisibilities() {
+    private void updateTrackSelectionBtnsVisibilities() {
         debugRootView.removeAllViews();
         if (player == null) {
             return;
@@ -659,11 +632,31 @@ public class PlayerActivity extends Activity
                 }
                 button.setText(label);
                 button.setTag(i);
-                button.setOnClickListener(this);
+                button.setOnClickListener(view -> setOnTrackSelectionBtnClickListener(view));
                 debugRootView.addView(button);
             }
         }
     }
+    
+    private void setOnTrackSelectionBtnClickListener(View view){
+        MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        if (mappedTrackInfo != null) {
+            CharSequence title = ((Button) view).getText();
+            int rendererIndex = (int) view.getTag();
+            int rendererType = mappedTrackInfo.getRendererType(rendererIndex);
+            boolean allowAdaptiveSelections =
+                    rendererType == C.TRACK_TYPE_VIDEO
+                            || (rendererType == C.TRACK_TYPE_AUDIO
+                            && mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_VIDEO)
+                            == MappedTrackInfo.RENDERER_SUPPORT_NO_TRACKS);
+            Pair<AlertDialog, TrackSelectionView> dialogPair =
+                    TrackSelectionView.getDialog(this, title, trackSelector, rendererIndex);
+            dialogPair.second.setShowDisableOption(true);
+            dialogPair.second.setAllowAdaptiveSelections(allowAdaptiveSelections);
+            dialogPair.first.show();
+        }
+    }
+
 
     private void showControls() {
         debugRootView.setVisibility(View.VISIBLE);
@@ -698,7 +691,7 @@ public class PlayerActivity extends Activity
             if (playbackState == Player.STATE_ENDED) {
                 showControls();
             }
-            updateButtonVisibilities();
+            updateTrackSelectionBtnsVisibilities();
         }
 
         @Override
@@ -717,7 +710,7 @@ public class PlayerActivity extends Activity
                 initializePlayer();
             } else {
                 updateStartPosition();
-                updateButtonVisibilities();
+                updateTrackSelectionBtnsVisibilities();
                 showControls();
             }
         }
@@ -725,7 +718,7 @@ public class PlayerActivity extends Activity
         @Override
         @SuppressWarnings("ReferenceEquality")
         public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-            updateButtonVisibilities();
+            updateTrackSelectionBtnsVisibilities();
             if (trackGroups != lastSeenTrackGroupArray) {
                 MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
                 if (mappedTrackInfo != null) {
