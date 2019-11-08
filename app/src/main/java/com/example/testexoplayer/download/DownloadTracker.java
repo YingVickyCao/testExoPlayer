@@ -129,12 +129,10 @@ public class DownloadTracker implements DownloadManager.Listener {
 
     public void toggleDownload(Activity activity, String name, Uri uri, String extension) {
         if (isDownloaded(uri)) {
-            DownloadAction removeAction =
-                    getDownloadHelper(uri, extension).getRemoveAction(Util.getUtf8Bytes(name));
+            DownloadAction removeAction = getDownloadHelper(uri, extension).getRemoveAction(Util.getUtf8Bytes(name));
             startServiceWithAction(removeAction);
         } else {
-            StartDownloadDialogHelper helper =
-                    new StartDownloadDialogHelper(activity, getDownloadHelper(uri, extension), name);
+            StartDownloadDialogHelper helper = new StartDownloadDialogHelper(activity, getDownloadHelper(uri, extension), name);
             helper.prepare();
         }
     }
@@ -222,8 +220,7 @@ public class DownloadTracker implements DownloadManager.Listener {
         }
     }
 
-    private final class StartDownloadDialogHelper
-            implements DownloadHelper.Callback, DialogInterface.OnClickListener {
+    private final class StartDownloadDialogHelper implements DownloadHelper.Callback, DialogInterface.OnClickListener {
 
         private final DownloadHelper downloadHelper;
         private final String name;
@@ -234,8 +231,7 @@ public class DownloadTracker implements DownloadManager.Listener {
         private final ArrayAdapter<String> trackTitles;
         private final ListView representationList;
 
-        public StartDownloadDialogHelper(
-                Activity activity, DownloadHelper downloadHelper, String name) {
+        public StartDownloadDialogHelper(Activity activity, DownloadHelper downloadHelper, String name) {
             this.downloadHelper = downloadHelper;
             this.name = name;
             builder =
@@ -281,9 +277,7 @@ public class DownloadTracker implements DownloadManager.Listener {
 
         @Override
         public void onPrepareError(DownloadHelper helper, IOException e) {
-            Toast.makeText(
-                    context.getApplicationContext(), R.string.download_start_error, Toast.LENGTH_LONG)
-                    .show();
+            Toast.makeText(context.getApplicationContext(), R.string.download_start_error, Toast.LENGTH_LONG).show();
             Log.e(TAG, "Failed to start download", e);
         }
 
@@ -297,8 +291,7 @@ public class DownloadTracker implements DownloadManager.Listener {
             }
             if (!selectedTrackKeys.isEmpty() || trackKeys.isEmpty()) {
                 // We have selected keys, or we're dealing with single stream content.
-                DownloadAction downloadAction =
-                        downloadHelper.getDownloadAction(Util.getUtf8Bytes(name), selectedTrackKeys);
+                DownloadAction downloadAction = downloadHelper.getDownloadAction(Util.getUtf8Bytes(name), selectedTrackKeys);
                 startDownload(downloadAction);
             }
         }

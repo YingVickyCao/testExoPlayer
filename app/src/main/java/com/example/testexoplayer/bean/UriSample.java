@@ -1,4 +1,4 @@
-package com.example.testexoplayer.list;
+package com.example.testexoplayer.bean;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,21 +11,21 @@ public final class UriSample extends Sample {
 
     public final Uri uri;
     public final String extension;
-    public final String adTagUri;
-    public final String sphericalStereoMode;
+    public final String ad_tag_uri;
+    public final String spherical_stereo_mode;
 
     public UriSample(
             String name,
             DrmInfo drmInfo,
             Uri uri,
-            String extension,
+            String ad_tag_uri,
             String adTagUri,
-            String sphericalStereoMode) {
+            String spherical_stereo_mode) {
         super(name, drmInfo);
         this.uri = uri;
-        this.extension = extension;
-        this.adTagUri = adTagUri;
-        this.sphericalStereoMode = sphericalStereoMode;
+        this.extension = ad_tag_uri;
+        this.ad_tag_uri = adTagUri;
+        this.spherical_stereo_mode = spherical_stereo_mode;
     }
 
     @Override
@@ -33,8 +33,8 @@ public final class UriSample extends Sample {
         return super.buildIntent(context, preferExtensionDecoders, abrAlgorithm)
                 .setData(uri)
                 .putExtra(PlayerActivity.EXTENSION_EXTRA, extension)
-                .putExtra(PlayerActivity.AD_TAG_URI_EXTRA, adTagUri)
-                .putExtra(PlayerActivity.SPHERICAL_STEREO_MODE_EXTRA, sphericalStereoMode)
+                .putExtra(PlayerActivity.AD_TAG_URI_EXTRA, ad_tag_uri)
+                .putExtra(PlayerActivity.SPHERICAL_STEREO_MODE_EXTRA, spherical_stereo_mode)
                 .setAction(PlayerActivity.ACTION_VIEW);
     }
 

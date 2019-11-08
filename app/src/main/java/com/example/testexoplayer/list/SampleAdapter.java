@@ -8,6 +8,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.testexoplayer.R;
+import com.example.testexoplayer.bean.Sample;
+import com.example.testexoplayer.bean.UriSample;
 
 import java.util.Collections;
 import java.util.List;

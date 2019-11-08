@@ -29,6 +29,9 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import com.example.testexoplayer.R;
+import com.example.testexoplayer.bean.PlaylistSample;
+import com.example.testexoplayer.bean.Sample;
+import com.example.testexoplayer.bean.UriSample;
 import com.example.testexoplayer.download.DemoApplication;
 import com.example.testexoplayer.download.DemoDownloadService;
 import com.example.testexoplayer.download.DownloadTracker;
@@ -155,8 +158,7 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
     public void onSampleDownloadButtonClicked(Sample sample) {
         int downloadUnsupportedStringId = getDownloadUnsupportedStringId(sample);
         if (downloadUnsupportedStringId != 0) {
-            Toast.makeText(getApplicationContext(), downloadUnsupportedStringId, Toast.LENGTH_LONG)
-                    .show();
+            Toast.makeText(getApplicationContext(), downloadUnsupportedStringId, Toast.LENGTH_LONG).show();
         } else {
             UriSample uriSample = (UriSample) sample;
             ((DemoApplication) getApplication()).getDownloadTracker().toggleDownload(this, sample.name, uriSample.uri, uriSample.extension);
@@ -171,7 +173,7 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
         if (uriSample.drmInfo != null) {
             return R.string.download_drm_unsupported;
         }
-        if (uriSample.adTagUri != null) {
+        if (uriSample.ad_tag_uri != null) {
             return R.string.download_ads_unsupported;
         }
         String scheme = uriSample.uri.getScheme();

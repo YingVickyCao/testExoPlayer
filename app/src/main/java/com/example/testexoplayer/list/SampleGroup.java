@@ -1,6 +1,6 @@
 package com.example.testexoplayer.list;
 
-import com.example.testexoplayer.list.Sample;
+import com.example.testexoplayer.bean.Sample;
 
 import java.util.ArrayList;
 import java.util.List;

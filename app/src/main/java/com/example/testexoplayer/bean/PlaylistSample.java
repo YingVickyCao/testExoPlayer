@@ -1,4 +1,4 @@
-package com.example.testexoplayer.list;
+package com.example.testexoplayer.bean;
 
 import android.content.Context;
 import android.content.Intent;

@@ -1,4 +1,4 @@
-package com.example.testexoplayer.list;
+package com.example.testexoplayer.bean;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,7 +6,7 @@ import android.content.Intent;
 import com.example.testexoplayer.player.PlayerActivity;
 import com.example.testexoplayer.download.DrmInfo;
 
-abstract class Sample {
+public abstract class Sample {
     public final String name;
     public final DrmInfo drmInfo;
 

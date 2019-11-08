@@ -5,6 +5,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.JsonReader;
 
+import com.example.testexoplayer.bean.PlaylistSample;
+import com.example.testexoplayer.bean.Sample;
+import com.example.testexoplayer.bean.UriSample;
+import com.example.testexoplayer.download.DemoApplication;
 import com.example.testexoplayer.download.DrmInfo;
 import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -33,9 +37,11 @@ public final class SampleListLoader extends AsyncTask<String, Void, List<SampleG
     protected List<SampleGroup> doInBackground(String... uris) {
         List<SampleGroup> result = new ArrayList<>();
         Context context = sampleChooserActivity.getApplicationContext();
-        String userAgent = Util.getUserAgent(context, "ExoPlayerDemo");
-        DataSource dataSource = new DefaultDataSource(context, userAgent, /* allowCrossProtocolRedirects= */ false);
+        String userAgent = ((DemoApplication) context).getUserAgent();
+        DataSource dataSource = new DefaultDataSource(context, userAgent, false);
+
         for (String uri : uris) {
+            // asset:///media.exolist.json
             DataSpec dataSpec = new DataSpec(Uri.parse(uri));
             InputStream inputStream = new DataSourceInputStream(dataSource, dataSpec);
             try {
@@ -98,13 +104,13 @@ public final class SampleListLoader extends AsyncTask<String, Void, List<SampleG
         String sampleName = null;
         Uri uri = null;
         String extension = null;
-        String drmScheme = null;
-        String drmLicenseUrl = null;
-        String[] drmKeyRequestProperties = null;
-        boolean drmMultiSession = false;
-        ArrayList<UriSample> playlistSamples = null;
-        String adTagUri = null;
-        String sphericalStereoMode = null;
+        String drm_scheme = null;
+        String drm_license_url = null;
+        String[] drm_key_request_properties = null;
+        boolean drm_multi_session = false;
+        ArrayList<UriSample> playlist = null;
+        String ad_tag_uri = null;
+        String spherical_stereo_mode = null;
 
         reader.beginObject();
         while (reader.hasNext()) {
@@ -121,12 +127,11 @@ public final class SampleListLoader extends AsyncTask<String, Void, List<SampleG
                     break;
                 case "drm_scheme":
                     Assertions.checkState(!insidePlaylist, "Invalid attribute on nested item: drm_scheme");
-                    drmScheme = reader.nextString();
+                    drm_scheme = reader.nextString();
                     break;
                 case "drm_license_url":
-                    Assertions.checkState(!insidePlaylist,
-                            "Invalid attribute on nested item: drm_license_url");
-                    drmLicenseUrl = reader.nextString();
+                    Assertions.checkState(!insidePlaylist, "Invalid attribute on nested item: drm_license_url");
+                    drm_license_url = reader.nextString();
                     break;
                 case "drm_key_request_properties":
                     Assertions.checkState(!insidePlaylist, "Invalid attribute on nested item: drm_key_request_properties");
@@ -137,44 +142,38 @@ public final class SampleListLoader extends AsyncTask<String, Void, List<SampleG
                         drmKeyRequestPropertiesList.add(reader.nextString());
                     }
                     reader.endObject();
-                    drmKeyRequestProperties = drmKeyRequestPropertiesList.toArray(new String[0]);
+                    drm_key_request_properties = drmKeyRequestPropertiesList.toArray(new String[0]);
                     break;
                 case "drm_multi_session":
-                    drmMultiSession = reader.nextBoolean();
+                    drm_multi_session = reader.nextBoolean();
                     break;
                 case "playlist":
                     Assertions.checkState(!insidePlaylist, "Invalid nesting of playlists");
-                    playlistSamples = new ArrayList<>();
+                    playlist = new ArrayList<>();
                     reader.beginArray();
                     while (reader.hasNext()) {
-                        playlistSamples.add((UriSample) readEntry(reader, true));
+                        playlist.add((UriSample) readEntry(reader, true));
                     }
                     reader.endArray();
                     break;
                 case "ad_tag_uri":
-                    adTagUri = reader.nextString();
+                    ad_tag_uri = reader.nextString();
                     break;
                 case "spherical_stereo_mode":
                     Assertions.checkState(!insidePlaylist, "Invalid attribute on nested item: spherical_stereo_mode");
-                    sphericalStereoMode = reader.nextString();
+                    spherical_stereo_mode = reader.nextString();
                     break;
                 default:
                     throw new ParserException("Unsupported attribute name: " + name);
             }
         }
         reader.endObject();
-        DrmInfo drmInfo = drmScheme == null ? null : new DrmInfo(drmScheme, drmLicenseUrl, drmKeyRequestProperties, drmMultiSession);
-        if (playlistSamples != null) {
-            UriSample[] playlistSamplesArray = playlistSamples.toArray(new UriSample[playlistSamples.size()]);
+        DrmInfo drmInfo = drm_scheme == null ? null : new DrmInfo(drm_scheme, drm_license_url, drm_key_request_properties, drm_multi_session);
+        if (playlist != null) {
+            UriSample[] playlistSamplesArray = playlist.toArray(new UriSample[playlist.size()]);
             return new PlaylistSample(sampleName, drmInfo, playlistSamplesArray);
         } else {
-            return new UriSample(
-                    sampleName,
-                    drmInfo,
-                    uri,
-                    extension,
-                    adTagUri,
-                    sphericalStereoMode);
+            return new UriSample(sampleName, drmInfo, uri, extension, ad_tag_uri, spherical_stereo_mode);
         }
     }
 

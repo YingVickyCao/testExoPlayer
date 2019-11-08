@@ -18,6 +18,7 @@ package com.example.testexoplayer.download;
 import android.app.Application;
 
 import com.example.testexoplayer.BuildConfig;
+import com.example.testexoplayer.R;
 import com.google.android.exoplayer2.offline.DownloadManager;
 import com.google.android.exoplayer2.offline.DownloaderConstructorHelper;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -54,9 +55,12 @@ public class DemoApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        userAgent = Util.getUserAgent(this, "ExoPlayerDemo");
+        userAgent = getUserAgent();
     }
 
+    public String getUserAgent(){
+        return Util.getUserAgent(this, getResources().getString(R.string.app_name));
+    }
     /**
      * Returns a {@link DataSource.Factory}.
      */
