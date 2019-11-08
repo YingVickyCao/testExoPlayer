@@ -81,30 +81,22 @@ public class DemoApplication extends Application {
     }
 
     public DownloadManager getDownloadManager() {
-        initDownloadManager();
+        checkInitDownloadManager();
         return downloadManager;
     }
 
     public DownloadTracker getDownloadTracker() {
-        initDownloadManager();
+        checkInitDownloadManager();
         return downloadTracker;
     }
 
-    private synchronized void initDownloadManager() {
+    private synchronized void checkInitDownloadManager() {
         if (downloadManager == null) {
-            DownloaderConstructorHelper downloaderConstructorHelper =
-                    new DownloaderConstructorHelper(getDownloadCache(), buildHttpDataSourceFactory());
-            downloadManager =
-                    new DownloadManager(
-                            downloaderConstructorHelper,
-                            MAX_SIMULTANEOUS_DOWNLOADS,
-                            DownloadManager.DEFAULT_MIN_RETRY_COUNT,
-                            new File(getDownloadDirectory(), DOWNLOAD_ACTION_FILE));
-            downloadTracker =
-                    new DownloadTracker(
-                            /* context= */ this,
-                            buildDataSourceFactory(),
-                            new File(getDownloadDirectory(), DOWNLOAD_TRACKER_ACTION_FILE));
+
+            downloadTracker = new DownloadTracker(this, buildDataSourceFactory(), new File(getDownloadDirectory(), DOWNLOAD_TRACKER_ACTION_FILE));
+
+            DownloaderConstructorHelper downloaderConstructorHelper = new DownloaderConstructorHelper(getDownloadCache(), buildHttpDataSourceFactory());
+            downloadManager = new DownloadManager(downloaderConstructorHelper, MAX_SIMULTANEOUS_DOWNLOADS, DownloadManager.DEFAULT_MIN_RETRY_COUNT, new File(getDownloadDirectory(), DOWNLOAD_ACTION_FILE));
             downloadManager.addListener(downloadTracker);
         }
     }
@@ -127,14 +119,7 @@ public class DemoApplication extends Application {
         return downloadDirectory;
     }
 
-    private static CacheDataSourceFactory buildReadOnlyCacheDataSource(
-            DefaultDataSourceFactory upstreamFactory, Cache cache) {
-        return new CacheDataSourceFactory(
-                cache,
-                upstreamFactory,
-                new FileDataSourceFactory(),
-                /* cacheWriteDataSinkFactory= */ null,
-                CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR,
-                /* eventListener= */ null);
+    private static CacheDataSourceFactory buildReadOnlyCacheDataSource(DefaultDataSourceFactory upstreamFactory, Cache cache) {
+        return new CacheDataSourceFactory(cache, upstreamFactory, new FileDataSourceFactory(), null, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR, null);
     }
 }

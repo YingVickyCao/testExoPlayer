@@ -28,11 +28,11 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import com.example.testexoplayer.player.PlayerActivity;
 import com.example.testexoplayer.R;
 import com.example.testexoplayer.download.DemoApplication;
 import com.example.testexoplayer.download.DemoDownloadService;
 import com.example.testexoplayer.download.DownloadTracker;
+import com.example.testexoplayer.player.PlayerActivity;
 import com.google.android.exoplayer2.offline.DownloadService;
 
 import java.io.IOException;
@@ -46,7 +46,6 @@ import java.util.List;
 public class SampleChooserActivity extends Activity implements DownloadTracker.Listener {
     public static final String TAG = "SampleChooserActivity";
 
-    public DownloadTracker downloadTracker;
     private SampleAdapter sampleAdapter;
     private MenuItem preferExtensionDecodersMenuItem;
     private MenuItem randomAbrMenuItem;
@@ -57,16 +56,8 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
         setContentView(R.layout.activity_sample_list);
 
         initSampleListView();
-
         loadAssertJsonResources();
-        // Start the download service if it should be running but it's not currently.
-        // Starting the service in the foreground causes notification flicker if there is no scheduled action.
-        // Starting it in the background throws an exception if the app is in the background too // (e.g. if device screen is locked).
-        try {
-            DownloadService.start(this, DemoDownloadService.class);
-        } catch (IllegalStateException e) {
-            DownloadService.startForeground(this, DemoDownloadService.class);
-        }
+        startDownloadService();
     }
 
     private void initSampleListView() {
@@ -106,6 +97,17 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
         loaderTask.execute(getAssertJsonResources());
     }
 
+    private void startDownloadService() {
+        // Start the download service if it should be running but it's not currently.
+        // Starting the service in the foreground causes notification flicker if there is no scheduled action.
+        // Starting it in the background throws an exception if the app is in the background too // (e.g. if device screen is locked).
+        try {
+            DownloadService.start(this, DemoDownloadService.class);
+        } catch (IllegalStateException e) {
+            DownloadService.startForeground(this, DemoDownloadService.class);
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -143,7 +145,6 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
     public void onDownloadsChanged() {
         sampleAdapter.notifyDataSetChanged();
     }
-
 
     private boolean onChildClick(ExpandableListView parent, View view, int groupPosition, int childPosition, long id) {
         Sample sample = (Sample) view.getTag();
