@@ -1,5 +1,6 @@
 package com.example.testexoplayer.list;
 
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
@@ -39,7 +40,7 @@ final class SampleAdapter extends BaseExpandableListAdapter implements View.OnCl
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = sampleChooserActivity.getLayoutInflater().inflate(R.layout.sample_list_item, parent, false);
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.sample_list_item, parent, false);
             View downloadButton = view.findViewById(R.id.download_button);
             downloadButton.setOnClickListener(this);
             downloadButton.setFocusable(false);
@@ -67,7 +68,7 @@ final class SampleAdapter extends BaseExpandableListAdapter implements View.OnCl
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = sampleChooserActivity.getLayoutInflater().inflate(android.R.layout.simple_expandable_list_item_1, parent, false);
+            view = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_expandable_list_item_1, parent, false);
         }
         ((TextView) view).setText(getGroup(groupPosition).title);
         return view;
@@ -99,7 +100,7 @@ final class SampleAdapter extends BaseExpandableListAdapter implements View.OnCl
         sampleTitle.setText(sample.name);
 
         boolean canDownload = sampleChooserActivity.getDownloadUnsupportedStringId(sample) == 0;
-        boolean isDownloaded = canDownload && sampleChooserActivity.downloadTracker.isDownloaded(((UriSample) sample).uri);
+        boolean isDownloaded = canDownload && sampleChooserActivity.getDownloadTracker().isDownloaded(((UriSample) sample).uri);
         ImageButton downloadButton = view.findViewById(R.id.download_button);
         downloadButton.setTag(sample);
         downloadButton.setColorFilter(canDownload ? (isDownloaded ? 0xFF42A5F5 : 0xFFBDBDBD) : 0xFFEEEEEE);

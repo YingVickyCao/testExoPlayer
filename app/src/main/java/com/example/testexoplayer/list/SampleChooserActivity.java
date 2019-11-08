@@ -46,7 +46,6 @@ import java.util.List;
 public class SampleChooserActivity extends Activity implements DownloadTracker.Listener {
     public static final String TAG = "SampleChooserActivity";
 
-    private boolean useExtensionRenderers;
     public DownloadTracker downloadTracker;
     private SampleAdapter sampleAdapter;
     private MenuItem preferExtensionDecodersMenuItem;
@@ -55,24 +54,14 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.sample_chooser_activity);
-        sampleAdapter = new SampleAdapter(this);
-        ExpandableListView sampleListView = findViewById(R.id.sample_list);
-        sampleListView.setAdapter(sampleAdapter);
-        sampleListView.setOnChildClickListener(SampleChooserActivity.this::onChildClick);
+        setContentView(R.layout.activity_sample_list);
 
+        initSampleListView();
 
-        DemoApplication application = (DemoApplication) getApplication();
-        useExtensionRenderers = application.useExtensionRenderers();
-        downloadTracker = application.getDownloadTracker();
-
-        SampleListLoader loaderTask = new SampleListLoader(this);
-        loaderTask.execute(getAssertResourceJsonFiless());
-
+        loadAssertJsonResources();
         // Start the download service if it should be running but it's not currently.
-        // Starting the service in the foreground causes notification flicker if there is no scheduled
-        // action. Starting it in the background throws an exception if the app is in the background too
-        // (e.g. if device screen is locked).
+        // Starting the service in the foreground causes notification flicker if there is no scheduled action.
+        // Starting it in the background throws an exception if the app is in the background too // (e.g. if device screen is locked).
         try {
             DownloadService.start(this, DemoDownloadService.class);
         } catch (IllegalStateException e) {
@@ -80,7 +69,14 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
         }
     }
 
-    private String[] getAssertResourceJsonFiless() {
+    private void initSampleListView() {
+        ExpandableListView sampleListView = findViewById(R.id.sample_list);
+        sampleAdapter = new SampleAdapter(this);
+        sampleListView.setAdapter(sampleAdapter);
+        sampleListView.setOnChildClickListener(SampleChooserActivity.this::onChildClick);
+    }
+
+    private String[] getAssertJsonResources() {
         Intent intent = getIntent();
         String dataUri = intent.getDataString();
         String[] uris;
@@ -105,12 +101,17 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
         return uris;
     }
 
+    private void loadAssertJsonResources() {
+        SampleListLoader loaderTask = new SampleListLoader(this);
+        loaderTask.execute(getAssertJsonResources());
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.sample_chooser_menu, menu);
         preferExtensionDecodersMenuItem = menu.findItem(R.id.prefer_extension_decoders);
-        preferExtensionDecodersMenuItem.setVisible(useExtensionRenderers);
+        preferExtensionDecodersMenuItem.setVisible(((DemoApplication) getApplication()).isUseExtensionRenderers());
         randomAbrMenuItem = menu.findItem(R.id.random_abr);
         return true;
     }
@@ -124,13 +125,17 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
     @Override
     public void onStart() {
         super.onStart();
-        downloadTracker.addListener(this);
+        getDownloadTracker().addListener(this);
         sampleAdapter.notifyDataSetChanged();
+    }
+
+    public DownloadTracker getDownloadTracker() {
+        return ((DemoApplication) getApplication()).getDownloadTracker();
     }
 
     @Override
     public void onStop() {
-        downloadTracker.removeListener(this);
+        getDownloadTracker().removeListener(this);
         super.onStop();
     }
 
@@ -139,13 +144,6 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
         sampleAdapter.notifyDataSetChanged();
     }
 
-    public void onSampleGroups(final List<SampleGroup> groups, boolean sawError) {
-        if (sawError) {
-            Toast.makeText(getApplicationContext(), R.string.sample_list_load_error, Toast.LENGTH_LONG)
-                    .show();
-        }
-        sampleAdapter.setSampleGroups(groups);
-    }
 
     private boolean onChildClick(ExpandableListView parent, View view, int groupPosition, int childPosition, long id) {
         Sample sample = (Sample) view.getTag();
@@ -160,7 +158,7 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
                     .show();
         } else {
             UriSample uriSample = (UriSample) sample;
-            downloadTracker.toggleDownload(this, sample.name, uriSample.uri, uriSample.extension);
+            ((DemoApplication) getApplication()).getDownloadTracker().toggleDownload(this, sample.name, uriSample.uri, uriSample.extension);
         }
     }
 
@@ -187,4 +185,10 @@ public class SampleChooserActivity extends Activity implements DownloadTracker.L
         return menuItem != null && menuItem.isChecked();
     }
 
+    public void setAdapterDataSource(final List<SampleGroup> groups, boolean isError) {
+        if (isError) {
+            Toast.makeText(getApplicationContext(), R.string.sample_list_load_error, Toast.LENGTH_LONG).show();
+        }
+        sampleAdapter.setSampleGroups(groups);
+    }
 }

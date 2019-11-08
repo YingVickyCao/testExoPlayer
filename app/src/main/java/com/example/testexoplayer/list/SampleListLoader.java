@@ -52,7 +52,7 @@ public final class SampleListLoader extends AsyncTask<String, Void, List<SampleG
 
     @Override
     protected void onPostExecute(List<SampleGroup> result) {
-        sampleChooserActivity.onSampleGroups(result, sawError);
+        sampleChooserActivity.setAdapterDataSource(result, sawError);
     }
 
     private void readSampleGroups(JsonReader reader, List<SampleGroup> groups) throws IOException {
