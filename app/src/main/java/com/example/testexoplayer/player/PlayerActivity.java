@@ -333,11 +333,9 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                 return;
             }
 
-            trackSelector = new DefaultTrackSelector(trackSelectionFactory);
-            trackSelector.setParameters(trackSelectorParameters);
+            setTrackSelector(trackSelectionFactory);
 
             lastSeenTrackGroupArray = null;
-
             DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
             if (isDrm(intent)) {
                 drmSessionManager = buildDrmSessionManager(intent);
@@ -527,6 +525,12 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             mediaSources[i] = buildMediaSource(uris[i], extensions[i]);
         }
         return mediaSources;
+    }
+
+
+    private void setTrackSelector(TrackSelection.Factory trackSelectionFactory){
+        trackSelector = new DefaultTrackSelector(trackSelectionFactory);
+        trackSelector.setParameters(trackSelectorParameters);
     }
 
 
