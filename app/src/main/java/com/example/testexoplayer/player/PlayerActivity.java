@@ -91,7 +91,7 @@ import java.util.UUID;
 /**
  * An activity that plays media using {@link SimpleExoPlayer}.
  */
-public class PlayerActivity extends Activity implements  PlaybackPreparer, PlayerControlView.VisibilityListener {
+public class PlayerActivity extends Activity implements PlaybackPreparer, PlayerControlView.VisibilityListener {
 
     public static final String DRM_SCHEME_EXTRA = "drm_scheme";
     public static final String DRM_LICENSE_URL_EXTRA = "drm_license_url";
@@ -318,32 +318,13 @@ public class PlayerActivity extends Activity implements  PlaybackPreparer, Playe
         if (player == null) {
             Intent intent = getIntent();
             String action = intent.getAction();
-            Uri[] uris;
-            String[] extensions;
-            if (ACTION_VIEW.equals(action)) {
-                uris = new Uri[]{intent.getData()};
-                extensions = new String[]{intent.getStringExtra(EXTENSION_EXTRA)};
-            } else if (ACTION_VIEW_LIST.equals(action)) {
-                String[] uriStrings = intent.getStringArrayExtra(URI_LIST_EXTRA);
-                uris = new Uri[uriStrings.length];
-                for (int i = 0; i < uriStrings.length; i++) {
-                    uris[i] = Uri.parse(uriStrings[i]);
-                }
-                extensions = intent.getStringArrayExtra(EXTENSION_LIST_EXTRA);
-                if (extensions == null) {
-                    extensions = new String[uriStrings.length];
-                }
-            } else {
-                showToast(getString(R.string.unexpected_intent_action, action));
-                finish();
+            if (!checkIntentAction(action)) {
                 return;
             }
-            if (!Util.checkCleartextTrafficPermitted(uris)) {
-                showToast(R.string.error_cleartext_not_permitted);
-                return;
-            }
-            if (Util.maybeRequestReadExternalStoragePermission(/* activity= */ this, uris)) {
-                // The player will be reinitialized if the permission is granted.
+
+            Uri[] uris = parseUris(intent);
+            String[] extensions = parseExtensions(intent);
+            if (!checkUris(uris)){
                 return;
             }
 
@@ -446,6 +427,59 @@ public class PlayerActivity extends Activity implements  PlaybackPreparer, Playe
         }
         player.prepare(mediaSource, !haveStartPosition, false);
         updateTrackSelectionBtnsVisibilities();
+    }
+
+    private boolean checkIntentAction(String action) {
+        if (!ACTION_VIEW.equals(action) && !ACTION_VIEW_LIST.equals(action)) {
+            showToast(getString(R.string.unexpected_intent_action, action));
+            finish();
+            return false;
+        }
+        return true;
+    }
+
+    private String[] parseExtensions(Intent intent) {
+        String action = intent.getAction();
+        String[] extensions = null;
+        if (ACTION_VIEW.equals(action)) {
+            extensions = new String[]{intent.getStringExtra(EXTENSION_EXTRA)};
+        } else if (ACTION_VIEW_LIST.equals(action)) {
+            String[] uriStrings = intent.getStringArrayExtra(URI_LIST_EXTRA);
+            extensions = intent.getStringArrayExtra(EXTENSION_LIST_EXTRA);
+            if (extensions == null) {
+                extensions = new String[uriStrings.length];
+            }
+        }
+        return extensions;
+    }
+
+
+    private Uri[] parseUris(Intent intent){
+        Uri[] uris = null;
+        String action = intent.getAction();
+
+        if (ACTION_VIEW.equals(action)) {
+            uris = new Uri[]{intent.getData()};
+        } else if (ACTION_VIEW_LIST.equals(action)) {
+            String[] uriStrings = intent.getStringArrayExtra(URI_LIST_EXTRA);
+            uris = new Uri[uriStrings.length];
+            for (int i = 0; i < uriStrings.length; i++) {
+                uris[i] = Uri.parse(uriStrings[i]);
+            }
+        }
+        return uris;
+    }
+
+    private boolean checkUris(Uri[] uris){
+        if (!Util.checkCleartextTrafficPermitted(uris)) {
+            showToast(R.string.error_cleartext_not_permitted);
+            return false;
+        }
+        if (Util.maybeRequestReadExternalStoragePermission(/* activity= */ this, uris)) {
+            // The player will be reinitialized if the permission is granted.
+            return false;
+        }
+        return true;
     }
 
     private MediaSource buildMediaSource(Uri uri) {
@@ -640,7 +674,7 @@ public class PlayerActivity extends Activity implements  PlaybackPreparer, Playe
         }
     }
 
-    private void setOnTrackSelectionBtnClickListener(View view){
+    private void setOnTrackSelectionBtnClickListener(View view) {
         MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         if (mappedTrackInfo != null) {
             CharSequence title = ((Button) view).getText();
