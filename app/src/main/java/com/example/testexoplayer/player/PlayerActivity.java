@@ -340,31 +340,21 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                 return;
             }
 
-            boolean preferExtensionDecoders =
-                    intent.getBooleanExtra(PREFER_EXTENSION_DECODERS_EXTRA, false);
-            @DefaultRenderersFactory.ExtensionRendererMode int extensionRendererMode =
-                    ((DemoApplication) getApplication()).isUseExtensionRenderers()
-                            ? (preferExtensionDecoders ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-                            : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-                            : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
-            DefaultRenderersFactory renderersFactory =
-                    new DefaultRenderersFactory(this, extensionRendererMode);
 
             trackSelector = new DefaultTrackSelector(trackSelectionFactory);
             trackSelector.setParameters(trackSelectorParameters);
+
             lastSeenTrackGroupArray = null;
 
             DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
             if (isDrm(intent)) {
-                int[] error = new int[1];
-                drmSessionManager = buildDrmSessionManager(intent, error);
-                int errorStringId = error[0];
+                drmSessionManager = buildDrmSessionManager(intent);
                 if (drmSessionManager == null) {
-                    showToast(errorStringId);
-                    finish();
                     return;
                 }
             }
+
+            DefaultRenderersFactory renderersFactory = renderersFactory(intent);
             player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, drmSessionManager);
             player.addListener(new PlayerEventListener());
             player.setPlayWhenReady(startAutoPlay);
@@ -483,6 +473,37 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         }
         error[0] = errorStringId;
         return drmSessionManager;
+    }
+
+    private DefaultDrmSessionManager<FrameworkMediaCrypto> buildDrmSessionManager(Intent intent) {
+        DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
+        if (isDrm(intent)) {
+            int[] error = new int[1];
+            drmSessionManager = buildDrmSessionManager(intent, error);
+            int errorStringId = error[0];
+            if (drmSessionManager == null) {
+                showToast(errorStringId);
+                finish();
+                return null;
+            }
+        }
+        return drmSessionManager;
+    }
+
+    private int extensionRendererMode(Intent intent) {
+        boolean preferExtensionDecoders = intent.getBooleanExtra(PREFER_EXTENSION_DECODERS_EXTRA, false);
+        @DefaultRenderersFactory.ExtensionRendererMode int extensionRendererMode =
+                ((DemoApplication) getApplication()).isUseExtensionRenderers() ?
+                        (preferExtensionDecoders ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                        : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
+
+        return extensionRendererMode;
+    }
+
+    private DefaultRenderersFactory renderersFactory(Intent intent) {
+        @DefaultRenderersFactory.ExtensionRendererMode int extensionRendererMode = extensionRendererMode(intent);
+        DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this, extensionRendererMode);
+        return renderersFactory;
     }
 
     private MediaSource buildMediaSource(Uri uri) {
