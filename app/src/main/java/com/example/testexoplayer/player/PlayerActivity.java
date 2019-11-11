@@ -102,8 +102,7 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     public static final String ACTION_VIEW = "com.google.android.exoplayer.demo.action.VIEW";
     public static final String EXTENSION_EXTRA = "extension";
 
-    public static final String ACTION_VIEW_LIST =
-            "com.google.android.exoplayer.demo.action.VIEW_LIST";
+    public static final String ACTION_VIEW_LIST = "com.google.android.exoplayer.demo.action.VIEW_LIST";
     public static final String URI_LIST_EXTRA = "uri_list";
     public static final String EXTENSION_LIST_EXTRA = "extension_list";
 
@@ -265,8 +264,7 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (grantResults.length == 0) {
             // Empty results are triggered if a permission is requested while another request was already
             // pending and can be safely ignored in this case.
@@ -291,7 +289,6 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     }
 
     // Activity input
-
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         // See whether the player view wants to handle media or DPAD keys events.
@@ -299,7 +296,6 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     }
 
     // PlaybackControlView.PlaybackPreparer implementation
-
     @Override
     public void preparePlayback() {
         initializePlayer();
@@ -555,20 +551,11 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         @ContentType int type = Util.inferContentType(uri, overrideExtension);
         switch (type) {
             case C.TYPE_DASH:
-                return new DashMediaSource.Factory(dataSourceFactory)
-                        .setManifestParser(
-                                new FilteringManifestParser<>(new DashManifestParser(), getOfflineStreamKeys(uri)))
-                        .createMediaSource(uri);
+                return new DashMediaSource.Factory(dataSourceFactory).setManifestParser(new FilteringManifestParser<>(new DashManifestParser(), getOfflineStreamKeys(uri))).createMediaSource(uri);
             case C.TYPE_SS:
-                return new SsMediaSource.Factory(dataSourceFactory)
-                        .setManifestParser(
-                                new FilteringManifestParser<>(new SsManifestParser(), getOfflineStreamKeys(uri)))
-                        .createMediaSource(uri);
+                return new SsMediaSource.Factory(dataSourceFactory).setManifestParser(new FilteringManifestParser<>(new SsManifestParser(), getOfflineStreamKeys(uri))).createMediaSource(uri);
             case C.TYPE_HLS:
-                return new HlsMediaSource.Factory(dataSourceFactory)
-                        .setPlaylistParserFactory(
-                                new DefaultHlsPlaylistParserFactory(getOfflineStreamKeys(uri)))
-                        .createMediaSource(uri);
+                return new HlsMediaSource.Factory(dataSourceFactory).setPlaylistParserFactory(new DefaultHlsPlaylistParserFactory(getOfflineStreamKeys(uri))).createMediaSource(uri);
             case C.TYPE_OTHER:
                 return new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
             default: {
@@ -666,26 +653,21 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             if (adsLoader == null) {
                 // Full class names used so the LINT.IfChange rule triggers should any of the classes move.
                 // LINT.IfChange
-                Constructor<? extends AdsLoader> loaderConstructor =
-                        loaderClass
-                                .asSubclass(AdsLoader.class)
-                                .getConstructor(android.content.Context.class, Uri.class);
-                // LINT.ThenChange(../../../../../../../../proguard-rules.txt)
+                Constructor<? extends AdsLoader> loaderConstructor = loaderClass.asSubclass(AdsLoader.class).getConstructor(android.content.Context.class, Uri.class);
                 adsLoader = loaderConstructor.newInstance(this, adTagUri);
             }
             adsLoader.setPlayer(player);
-            AdsMediaSource.MediaSourceFactory adMediaSourceFactory =
-                    new AdsMediaSource.MediaSourceFactory() {
-                        @Override
-                        public MediaSource createMediaSource(Uri uri) {
-                            return PlayerActivity.this.buildMediaSource(uri);
-                        }
+            AdsMediaSource.MediaSourceFactory adMediaSourceFactory = new AdsMediaSource.MediaSourceFactory() {
+                @Override
+                public MediaSource createMediaSource(Uri uri) {
+                    return PlayerActivity.this.buildMediaSource(uri);
+                }
 
-                        @Override
-                        public int[] getSupportedTypes() {
-                            return new int[]{C.TYPE_DASH, C.TYPE_SS, C.TYPE_HLS, C.TYPE_OTHER};
-                        }
-                    };
+                @Override
+                public int[] getSupportedTypes() {
+                    return new int[]{C.TYPE_DASH, C.TYPE_SS, C.TYPE_HLS, C.TYPE_OTHER};
+                }
+            };
             return new AdsMediaSource(mediaSource, adMediaSourceFactory, adsLoader, playerView);
         } catch (ClassNotFoundException e) {
             // IMA extension not loaded.
@@ -696,7 +678,6 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     }
 
     // User controls
-
     private void updateTrackSelectionBtnsVisibilities() {
         debugRootView.removeAllViews();
         if (player == null) {
@@ -740,19 +721,13 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             CharSequence title = ((Button) view).getText();
             int rendererIndex = (int) view.getTag();
             int rendererType = mappedTrackInfo.getRendererType(rendererIndex);
-            boolean allowAdaptiveSelections =
-                    rendererType == C.TRACK_TYPE_VIDEO
-                            || (rendererType == C.TRACK_TYPE_AUDIO
-                            && mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_VIDEO)
-                            == MappedTrackInfo.RENDERER_SUPPORT_NO_TRACKS);
-            Pair<AlertDialog, TrackSelectionView> dialogPair =
-                    TrackSelectionView.getDialog(this, title, trackSelector, rendererIndex);
+            boolean allowAdaptiveSelections = rendererType == C.TRACK_TYPE_VIDEO || (rendererType == C.TRACK_TYPE_AUDIO && mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_VIDEO) == MappedTrackInfo.RENDERER_SUPPORT_NO_TRACKS);
+            Pair<AlertDialog, TrackSelectionView> dialogPair = TrackSelectionView.getDialog(this, title, trackSelector, rendererIndex);
             dialogPair.second.setShowDisableOption(true);
             dialogPair.second.setAllowAdaptiveSelections(allowAdaptiveSelections);
             dialogPair.first.show();
         }
     }
-
 
     private void showControls() {
         debugRootView.setVisibility(View.VISIBLE);
@@ -818,12 +793,10 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             if (trackGroups != lastSeenTrackGroupArray) {
                 MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
                 if (mappedTrackInfo != null) {
-                    if (mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_VIDEO)
-                            == MappedTrackInfo.RENDERER_SUPPORT_UNSUPPORTED_TRACKS) {
+                    if (mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_VIDEO) == MappedTrackInfo.RENDERER_SUPPORT_UNSUPPORTED_TRACKS) {
                         showToast(R.string.error_unsupported_video);
                     }
-                    if (mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_AUDIO)
-                            == MappedTrackInfo.RENDERER_SUPPORT_UNSUPPORTED_TRACKS) {
+                    if (mappedTrackInfo.getTypeSupport(C.TRACK_TYPE_AUDIO) == MappedTrackInfo.RENDERER_SUPPORT_UNSUPPORTED_TRACKS) {
                         showToast(R.string.error_unsupported_audio);
                     }
                 }
@@ -833,7 +806,6 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     }
 
     private class PlayerErrorMessageProvider implements ErrorMessageProvider<ExoPlaybackException> {
-
         @Override
         public Pair<Integer, String> getErrorMessage(ExoPlaybackException e) {
             String errorString = getString(R.string.error_generic);
@@ -841,29 +813,22 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                 Exception cause = e.getRendererException();
                 if (cause instanceof DecoderInitializationException) {
                     // Special case for decoder initialization failures.
-                    DecoderInitializationException decoderInitializationException =
-                            (DecoderInitializationException) cause;
+                    DecoderInitializationException decoderInitializationException = (DecoderInitializationException) cause;
+
                     if (decoderInitializationException.decoderName == null) {
                         if (decoderInitializationException.getCause() instanceof DecoderQueryException) {
                             errorString = getString(R.string.error_querying_decoders);
                         } else if (decoderInitializationException.secureDecoderRequired) {
-                            errorString =
-                                    getString(
-                                            R.string.error_no_secure_decoder, decoderInitializationException.mimeType);
+                            errorString = getString(R.string.error_no_secure_decoder, decoderInitializationException.mimeType);
                         } else {
-                            errorString =
-                                    getString(R.string.error_no_decoder, decoderInitializationException.mimeType);
+                            errorString = getString(R.string.error_no_decoder, decoderInitializationException.mimeType);
                         }
                     } else {
-                        errorString =
-                                getString(
-                                        R.string.error_instantiating_decoder,
-                                        decoderInitializationException.decoderName);
+                        errorString = getString(R.string.error_instantiating_decoder, decoderInitializationException.decoderName);
                     }
                 }
             }
             return Pair.create(0, errorString);
         }
     }
-
 }
