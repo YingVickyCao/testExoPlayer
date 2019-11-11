@@ -324,12 +324,12 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
 
             Uri[] uris = parseUris(intent);
             String[] extensions = parseExtensions(intent);
-            if (!checkUris(uris)){
+            if (!checkUris(uris)) {
                 return;
             }
 
             DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
-            if (intent.hasExtra(DRM_SCHEME_EXTRA) || intent.hasExtra(DRM_SCHEME_UUID_EXTRA)) {
+            if (isDrm(intent)) {
                 String drmLicenseUrl = intent.getStringExtra(DRM_LICENSE_URL_EXTRA);
                 String[] keyRequestPropertiesArray =
                         intent.getStringArrayExtra(DRM_KEY_REQUEST_PROPERTIES_EXTRA);
@@ -454,7 +454,7 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     }
 
 
-    private Uri[] parseUris(Intent intent){
+    private Uri[] parseUris(Intent intent) {
         Uri[] uris = null;
         String action = intent.getAction();
 
@@ -470,7 +470,7 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         return uris;
     }
 
-    private boolean checkUris(Uri[] uris){
+    private boolean checkUris(Uri[] uris) {
         if (!Util.checkCleartextTrafficPermitted(uris)) {
             showToast(R.string.error_cleartext_not_permitted);
             return false;
@@ -480,6 +480,10 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             return false;
         }
         return true;
+    }
+
+    private boolean isDrm(Intent intent) {
+        return intent.hasExtra(DRM_SCHEME_EXTRA) || intent.hasExtra(DRM_SCHEME_UUID_EXTRA);
     }
 
     private MediaSource buildMediaSource(Uri uri) {
