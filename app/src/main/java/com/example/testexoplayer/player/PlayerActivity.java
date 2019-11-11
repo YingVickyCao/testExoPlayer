@@ -328,7 +328,13 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                 return;
             }
 
-            buildTrackSelector(intent);
+            TrackSelection.Factory trackSelectionFactory = buildTrackSelectionFactory(intent);
+            if (null == trackSelectionFactory){
+                return;
+            }
+            
+            trackSelector = new DefaultTrackSelector(trackSelectionFactory);
+            trackSelector.setParameters(trackSelectorParameters);
 
             lastSeenTrackGroupArray = null;
 
@@ -488,7 +494,8 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
 
     private DefaultRenderersFactory renderersFactory(Intent intent) {
         @DefaultRenderersFactory.ExtensionRendererMode int extensionRendererMode = extensionRendererMode(intent);
-        return new DefaultRenderersFactory(this, extensionRendererMode);
+        DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this, extensionRendererMode);
+        return renderersFactory;
     }
 
     private TrackSelection.Factory buildTrackSelectionFactory(Intent intent) {
@@ -504,16 +511,6 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             return null;
         }
         return trackSelectionFactory;
-    }
-
-    private  void buildTrackSelector(Intent intent){
-        TrackSelection.Factory trackSelectionFactory = buildTrackSelectionFactory(intent);
-        if (null == trackSelectionFactory){
-            return;
-        }
-        new DefaultTrackSelector(trackSelectionFactory);
-        trackSelector.setParameters(trackSelectorParameters);
-
     }
 
     private MediaSource buildMediaSource(Uri uri) {
