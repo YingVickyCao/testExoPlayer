@@ -330,30 +330,9 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
 
             DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
             if (isDrm(intent)) {
-                String drmLicenseUrl = intent.getStringExtra(DRM_LICENSE_URL_EXTRA);
-                String[] keyRequestPropertiesArray =
-                        intent.getStringArrayExtra(DRM_KEY_REQUEST_PROPERTIES_EXTRA);
-                boolean multiSession = intent.getBooleanExtra(DRM_MULTI_SESSION_EXTRA, false);
-                int errorStringId = R.string.error_drm_unknown;
-                if (Util.SDK_INT < 18) {
-                    errorStringId = R.string.error_drm_not_supported;
-                } else {
-                    try {
-                        String drmSchemeExtra = intent.hasExtra(DRM_SCHEME_EXTRA) ? DRM_SCHEME_EXTRA
-                                : DRM_SCHEME_UUID_EXTRA;
-                        UUID drmSchemeUuid = Util.getDrmUuid(intent.getStringExtra(drmSchemeExtra));
-                        if (drmSchemeUuid == null) {
-                            errorStringId = R.string.error_drm_unsupported_scheme;
-                        } else {
-                            drmSessionManager =
-                                    buildDrmSessionManagerV18(
-                                            drmSchemeUuid, drmLicenseUrl, keyRequestPropertiesArray, multiSession);
-                        }
-                    } catch (UnsupportedDrmException e) {
-                        errorStringId = e.reason == UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME
-                                ? R.string.error_drm_unsupported_scheme : R.string.error_drm_unknown;
-                    }
-                }
+                int[] error = new int[1];
+                drmSessionManager = buildDrmSessionManager(intent, error);
+                int errorStringId = error[0];
                 if (drmSessionManager == null) {
                     showToast(errorStringId);
                     finish();
@@ -486,6 +465,29 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         return intent.hasExtra(DRM_SCHEME_EXTRA) || intent.hasExtra(DRM_SCHEME_UUID_EXTRA);
     }
 
+    private DefaultDrmSessionManager<FrameworkMediaCrypto> buildDrmSessionManager(Intent intent, int[] error) {
+        DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
+        int errorStringId = Util.SDK_INT < 18 ? R.string.error_drm_not_supported : R.string.error_drm_unknown;
+        try {
+            String drmSchemeExtra = intent.hasExtra(DRM_SCHEME_EXTRA) ? DRM_SCHEME_EXTRA : DRM_SCHEME_UUID_EXTRA;
+            UUID drmSchemeUuid = Util.getDrmUuid(intent.getStringExtra(drmSchemeExtra));
+            if (drmSchemeUuid == null) {
+                errorStringId = R.string.error_drm_unsupported_scheme;
+            } else {
+                String drmLicenseUrl = intent.getStringExtra(DRM_LICENSE_URL_EXTRA);
+                String[] keyRequestPropertiesArray = intent.getStringArrayExtra(DRM_KEY_REQUEST_PROPERTIES_EXTRA);
+                boolean multiSession = intent.getBooleanExtra(DRM_MULTI_SESSION_EXTRA, false);
+                drmSessionManager = buildDrmSessionManagerV18(drmSchemeUuid, drmLicenseUrl, keyRequestPropertiesArray, multiSession);
+            }
+        } catch (UnsupportedDrmException e) {
+            errorStringId = e.reason == UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME ? R.string.error_drm_unsupported_scheme : R.string.error_drm_unknown;
+            error[0] = errorStringId;
+            return null;
+        }
+        error[0] = errorStringId;
+        return drmSessionManager;
+    }
+
     private MediaSource buildMediaSource(Uri uri) {
         return buildMediaSource(uri, null);
     }
@@ -520,17 +522,12 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         return ((DemoApplication) getApplication()).getDownloadTracker().getOfflineStreamKeys(uri);
     }
 
-    private DefaultDrmSessionManager<FrameworkMediaCrypto> buildDrmSessionManagerV18(
-            UUID uuid, String licenseUrl, String[] keyRequestPropertiesArray, boolean multiSession)
-            throws UnsupportedDrmException {
-        HttpDataSource.Factory licenseDataSourceFactory =
-                ((DemoApplication) getApplication()).buildHttpDataSourceFactory();
-        HttpMediaDrmCallback drmCallback =
-                new HttpMediaDrmCallback(licenseUrl, licenseDataSourceFactory);
+    private DefaultDrmSessionManager<FrameworkMediaCrypto> buildDrmSessionManagerV18(UUID uuid, String licenseUrl, String[] keyRequestPropertiesArray, boolean multiSession) throws UnsupportedDrmException {
+        HttpDataSource.Factory licenseDataSourceFactory = ((DemoApplication) getApplication()).buildHttpDataSourceFactory();
+        HttpMediaDrmCallback drmCallback = new HttpMediaDrmCallback(licenseUrl, licenseDataSourceFactory);
         if (keyRequestPropertiesArray != null) {
             for (int i = 0; i < keyRequestPropertiesArray.length - 1; i += 2) {
-                drmCallback.setKeyRequestProperty(keyRequestPropertiesArray[i],
-                        keyRequestPropertiesArray[i + 1]);
+                drmCallback.setKeyRequestProperty(keyRequestPropertiesArray[i], keyRequestPropertiesArray[i + 1]);
             }
         }
         releaseMediaDrm();
