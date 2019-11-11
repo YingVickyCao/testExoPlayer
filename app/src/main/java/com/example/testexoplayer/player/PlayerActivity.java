@@ -347,22 +347,10 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             setPlayerView();
             setDebugViewHelper();
 
-            MediaSource[] mediaSources = buildMediaSource(uris,extensions);
-            mediaSource = mediaSources.length == 1 ? mediaSources[0] : new ConcatenatingMediaSource(mediaSources);
-
             String adTagUriString = intent.getStringExtra(AD_TAG_URI_EXTRA);
+            setMediaSource(adTagUriString, uris, extensions);
             if (adTagUriString != null) {
-                Uri adTagUri = Uri.parse(adTagUriString);
-                if (!adTagUri.equals(loadedAdTagUri)) {
-                    releaseAdsLoader();
-                    loadedAdTagUri = adTagUri;
-                }
-                MediaSource adsMediaSource = createAdsMediaSource(mediaSource, Uri.parse(adTagUriString));
-                if (adsMediaSource != null) {
-                    mediaSource = adsMediaSource;
-                } else {
-                    showToast(R.string.ima_not_loaded);
-                }
+                setLoadedAdTagUri(adTagUriString);
             } else {
                 releaseAdsLoader();
             }
@@ -519,7 +507,7 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         debugViewHelper.start();
     }
 
-    private MediaSource[] buildMediaSource(Uri[] uris,String[] extensions){
+    private MediaSource[] buildMediaSource(Uri[] uris, String[] extensions) {
         MediaSource[] mediaSources = new MediaSource[uris.length];
         for (int i = 0; i < uris.length; i++) {
             mediaSources[i] = buildMediaSource(uris[i], extensions[i]);
@@ -528,9 +516,34 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
     }
 
 
-    private void setTrackSelector(TrackSelection.Factory trackSelectionFactory){
+    private void setTrackSelector(TrackSelection.Factory trackSelectionFactory) {
         trackSelector = new DefaultTrackSelector(trackSelectionFactory);
         trackSelector.setParameters(trackSelectorParameters);
+    }
+
+    private void setLoadedAdTagUri(String adTagUriString) {
+        if (null == adTagUriString) {
+            return;
+        }
+        Uri adTagUri = Uri.parse(adTagUriString);
+        if (!adTagUri.equals(loadedAdTagUri)) {
+            releaseAdsLoader();
+            loadedAdTagUri = adTagUri;
+        }
+    }
+
+    private void setMediaSource(String adTagUriString, Uri[] uris, String[] extensions) {
+        MediaSource[] mediaSources = buildMediaSource(uris, extensions);
+        mediaSource = mediaSources.length == 1 ? mediaSources[0] : new ConcatenatingMediaSource(mediaSources);
+
+        if (null != adTagUriString) {
+            MediaSource adsMediaSource = createAdsMediaSource(mediaSource, Uri.parse(adTagUriString));
+            if (null != adsMediaSource) {
+                mediaSource = adsMediaSource;
+            } else {
+                showToast(R.string.ima_not_loaded);
+            }
+        }
     }
 
 
