@@ -174,25 +174,8 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         debugRootView = findViewById(R.id.controls_root);
         debugTextView = findViewById(R.id.debug_text_view);
 
-        playerView = findViewById(R.id.player_view);
-        playerView.setControllerVisibilityListener(this);
-        playerView.setErrorMessageProvider(new PlayerErrorMessageProvider());
-        playerView.requestFocus();
-        if (sphericalStereoMode != null) {
-            int stereoMode;
-            if (SPHERICAL_STEREO_MODE_MONO.equals(sphericalStereoMode)) {
-                stereoMode = C.STEREO_MODE_MONO;
-            } else if (SPHERICAL_STEREO_MODE_TOP_BOTTOM.equals(sphericalStereoMode)) {
-                stereoMode = C.STEREO_MODE_TOP_BOTTOM;
-            } else if (SPHERICAL_STEREO_MODE_LEFT_RIGHT.equals(sphericalStereoMode)) {
-                stereoMode = C.STEREO_MODE_LEFT_RIGHT;
-            } else {
-                showToast(R.string.error_unrecognized_stereo_mode);
-                finish();
-                return;
-            }
-            ((SphericalSurfaceView) playerView.getVideoSurfaceView()).setDefaultStereoMode(stereoMode);
-        }
+        initPlayerView();
+        initSphericalSurfaceView(sphericalStereoMode);
 
         if (savedInstanceState != null) {
             trackSelectorParameters = savedInstanceState.getParcelable(KEY_TRACK_SELECTOR_PARAMETERS);
@@ -203,6 +186,42 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             trackSelectorParameters = new DefaultTrackSelector.ParametersBuilder().build();
             clearStartPosition();
         }
+    }
+
+    private void initSphericalSurfaceView(String sphericalStereoMode) {
+        if (null == sphericalStereoMode) {
+            return;
+        }
+
+        int stereoMode = convertSphericalStereoMode(sphericalStereoMode);
+        if (-1 == stereoMode) {
+            showToast(R.string.error_unrecognized_stereo_mode);
+            finish();
+            return;
+        }
+
+        ((SphericalSurfaceView) playerView.getVideoSurfaceView()).setDefaultStereoMode(stereoMode);
+    }
+
+    private int convertSphericalStereoMode(String sphericalStereoMode) {
+        int stereoMode;
+        if (SPHERICAL_STEREO_MODE_MONO.equals(sphericalStereoMode)) {
+            stereoMode = C.STEREO_MODE_MONO;
+        } else if (SPHERICAL_STEREO_MODE_TOP_BOTTOM.equals(sphericalStereoMode)) {
+            stereoMode = C.STEREO_MODE_TOP_BOTTOM;
+        } else if (SPHERICAL_STEREO_MODE_LEFT_RIGHT.equals(sphericalStereoMode)) {
+            stereoMode = C.STEREO_MODE_LEFT_RIGHT;
+        } else {
+            return -1;
+        }
+        return stereoMode;
+    }
+
+    private void initPlayerView() {
+        playerView = findViewById(R.id.player_view);
+        playerView.setControllerVisibilityListener(this);
+        playerView.setErrorMessageProvider(new PlayerErrorMessageProvider());
+        playerView.requestFocus();
     }
 
     @Override
