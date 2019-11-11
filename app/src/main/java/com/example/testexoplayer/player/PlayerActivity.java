@@ -329,10 +329,10 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             }
 
             TrackSelection.Factory trackSelectionFactory = buildTrackSelectionFactory(intent);
-            if (null == trackSelectionFactory){
+            if (null == trackSelectionFactory) {
                 return;
             }
-            
+
             trackSelector = new DefaultTrackSelector(trackSelectionFactory);
             trackSelector.setParameters(trackSelectorParameters);
 
@@ -345,23 +345,13 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                     return;
                 }
             }
+            setExoPlayer(intent, drmSessionManager);
+            setPlayerView();
+            setDebugViewHelper();
 
-            DefaultRenderersFactory renderersFactory = renderersFactory(intent);
-            player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, drmSessionManager);
-            player.addListener(new PlayerEventListener());
-            player.setPlayWhenReady(startAutoPlay);
-            player.addAnalyticsListener(new EventLogger(trackSelector));
-            playerView.setPlayer(player);
-            playerView.setPlaybackPreparer(this);
-            debugViewHelper = new DebugTextViewHelper(player, debugTextView);
-            debugViewHelper.start();
+            MediaSource[] mediaSources = buildMediaSource(uris,extensions);
+            mediaSource = mediaSources.length == 1 ? mediaSources[0] : new ConcatenatingMediaSource(mediaSources);
 
-            MediaSource[] mediaSources = new MediaSource[uris.length];
-            for (int i = 0; i < uris.length; i++) {
-                mediaSources[i] = buildMediaSource(uris[i], extensions[i]);
-            }
-            mediaSource =
-                    mediaSources.length == 1 ? mediaSources[0] : new ConcatenatingMediaSource(mediaSources);
             String adTagUriString = intent.getStringExtra(AD_TAG_URI_EXTRA);
             if (adTagUriString != null) {
                 Uri adTagUri = Uri.parse(adTagUriString);
@@ -512,6 +502,33 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         }
         return trackSelectionFactory;
     }
+
+    private void setPlayerView() {
+        playerView.setPlayer(player);
+        playerView.setPlaybackPreparer(this);
+    }
+
+    private void setExoPlayer(Intent intent, DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager) {
+        DefaultRenderersFactory renderersFactory = renderersFactory(intent);
+        player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, drmSessionManager);
+        player.addListener(new PlayerEventListener());
+        player.setPlayWhenReady(startAutoPlay);
+        player.addAnalyticsListener(new EventLogger(trackSelector));
+    }
+
+    private void setDebugViewHelper() {
+        debugViewHelper = new DebugTextViewHelper(player, debugTextView);
+        debugViewHelper.start();
+    }
+
+    private MediaSource[] buildMediaSource(Uri[] uris,String[] extensions){
+        MediaSource[] mediaSources = new MediaSource[uris.length];
+        for (int i = 0; i < uris.length; i++) {
+            mediaSources[i] = buildMediaSource(uris[i], extensions[i]);
+        }
+        return mediaSources;
+    }
+
 
     private MediaSource buildMediaSource(Uri uri) {
         return buildMediaSource(uri, null);
