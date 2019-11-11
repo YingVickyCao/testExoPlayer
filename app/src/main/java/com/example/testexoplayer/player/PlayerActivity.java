@@ -39,7 +39,6 @@ import com.google.android.exoplayer2.C.ContentType;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.PlaybackPreparer;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
@@ -71,7 +70,6 @@ import com.google.android.exoplayer2.trackselection.RandomTrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.DebugTextViewHelper;
-import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.ui.TrackSelectionView;
 import com.google.android.exoplayer2.ui.spherical.SphericalSurfaceView;
@@ -91,7 +89,7 @@ import java.util.UUID;
 /**
  * An activity that plays media using {@link SimpleExoPlayer}.
  */
-public class PlayerActivity extends Activity implements PlaybackPreparer, PlayerControlView.VisibilityListener {
+public class PlayerActivity extends Activity {
 
     public static final String DRM_SCHEME_EXTRA = "drm_scheme";
     public static final String DRM_LICENSE_URL_EXTRA = "drm_license_url";
@@ -217,11 +215,8 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         return stereoMode;
     }
 
-    private void initPlayerView() {
-        playerView = findViewById(R.id.player_view);
-        playerView.setControllerVisibilityListener(this);
-        playerView.setErrorMessageProvider(new PlayerErrorMessageProvider());
-        playerView.requestFocus();
+    public void onVisibilityChange(int visibility) {
+        debugRootView.setVisibility(visibility);
     }
 
     @Override
@@ -314,18 +309,7 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         return playerView.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
     }
 
-    // PlaybackControlView.PlaybackPreparer implementation
-    @Override
-    public void preparePlayback() {
-        initializePlayer();
-    }
-
     // PlaybackControlView.VisibilityListener implementation
-
-    @Override
-    public void onVisibilityChange(int visibility) {
-        debugRootView.setVisibility(visibility);
-    }
 
     // Internal methods
 
@@ -359,7 +343,7 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                 }
             }
             setExoPlayer(intent, drmSessionManager);
-            setPlayerView();
+            initPlayerView2();
             setDebugViewHelper();
 
             String adTagUriString = intent.getStringExtra(AD_TAG_URI_EXTRA);
@@ -504,9 +488,20 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         return trackSelectionFactory;
     }
 
-    private void setPlayerView() {
+    private void initPlayerView() {
+//        playerView = findViewById(R.id.player_view);
+        playerView = findViewById(R.id.player_view);
+        playerView.setControllerVisibilityListener(visibility -> PlayerActivity.this.onVisibilityChange(visibility));
+        playerView.setErrorMessageProvider(new PlayerErrorMessageProvider());
+        playerView.requestFocus();
+    }
+    private void initPlayerView2() {
         playerView.setPlayer(player);
-        playerView.setPlaybackPreparer(this);
+        playerView.setPlaybackPreparer(() -> preparePlayback());
+    }
+
+    public void preparePlayback() {
+        initializePlayer();
     }
 
     private void setExoPlayer(Intent intent, DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager) {
