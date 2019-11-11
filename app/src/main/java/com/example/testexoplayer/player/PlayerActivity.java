@@ -328,19 +328,11 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                 return;
             }
 
-            TrackSelection.Factory trackSelectionFactory;
-            String abrAlgorithm = intent.getStringExtra(ABR_ALGORITHM_EXTRA);
-            if (abrAlgorithm == null || ABR_ALGORITHM_DEFAULT.equals(abrAlgorithm)) {
-                trackSelectionFactory = new AdaptiveTrackSelection.Factory();
-            } else if (ABR_ALGORITHM_RANDOM.equals(abrAlgorithm)) {
-                trackSelectionFactory = new RandomTrackSelection.Factory();
-            } else {
-                showToast(R.string.error_unrecognized_abr_algorithm);
-                finish();
+            TrackSelection.Factory trackSelectionFactory = buildTrackSelectionFactory(intent);
+            if (null == trackSelectionFactory){
                 return;
             }
-
-
+            
             trackSelector = new DefaultTrackSelector(trackSelectionFactory);
             trackSelector.setParameters(trackSelectorParameters);
 
@@ -504,6 +496,21 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
         @DefaultRenderersFactory.ExtensionRendererMode int extensionRendererMode = extensionRendererMode(intent);
         DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this, extensionRendererMode);
         return renderersFactory;
+    }
+
+    private TrackSelection.Factory buildTrackSelectionFactory(Intent intent) {
+        TrackSelection.Factory trackSelectionFactory;
+        String abrAlgorithm = intent.getStringExtra(ABR_ALGORITHM_EXTRA);
+        if (abrAlgorithm == null || ABR_ALGORITHM_DEFAULT.equals(abrAlgorithm)) {
+            trackSelectionFactory = new AdaptiveTrackSelection.Factory();
+        } else if (ABR_ALGORITHM_RANDOM.equals(abrAlgorithm)) {
+            trackSelectionFactory = new RandomTrackSelection.Factory();
+        } else {
+            showToast(R.string.error_unrecognized_abr_algorithm);
+            finish();
+            return null;
+        }
+        return trackSelectionFactory;
     }
 
     private MediaSource buildMediaSource(Uri uri) {
