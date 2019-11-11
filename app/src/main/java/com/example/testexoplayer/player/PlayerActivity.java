@@ -328,18 +328,6 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
                 return;
             }
 
-            DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
-            if (isDrm(intent)) {
-                int[] error = new int[1];
-                drmSessionManager = buildDrmSessionManager(intent, error);
-                int errorStringId = error[0];
-                if (drmSessionManager == null) {
-                    showToast(errorStringId);
-                    finish();
-                    return;
-                }
-            }
-
             TrackSelection.Factory trackSelectionFactory;
             String abrAlgorithm = intent.getStringExtra(ABR_ALGORITHM_EXTRA);
             if (abrAlgorithm == null || ABR_ALGORITHM_DEFAULT.equals(abrAlgorithm)) {
@@ -366,9 +354,18 @@ public class PlayerActivity extends Activity implements PlaybackPreparer, Player
             trackSelector.setParameters(trackSelectorParameters);
             lastSeenTrackGroupArray = null;
 
-            player =
-                    ExoPlayerFactory.newSimpleInstance(
-                            /* context= */ this, renderersFactory, trackSelector, drmSessionManager);
+            DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
+            if (isDrm(intent)) {
+                int[] error = new int[1];
+                drmSessionManager = buildDrmSessionManager(intent, error);
+                int errorStringId = error[0];
+                if (drmSessionManager == null) {
+                    showToast(errorStringId);
+                    finish();
+                    return;
+                }
+            }
+            player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, drmSessionManager);
             player.addListener(new PlayerEventListener());
             player.setPlayWhenReady(startAutoPlay);
             player.addAnalyticsListener(new EventLogger(trackSelector));
