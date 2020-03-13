@@ -15,16 +15,24 @@
  */
 package com.example.testexoplayer.player;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -90,6 +98,7 @@ import java.util.UUID;
  * An activity that plays media using {@link SimpleExoPlayer}.
  */
 public class PlayerActivity extends Activity {
+    private static final String TAG = PlayerActivity.class.getSimpleName();
 
     public static final String DRM_SCHEME_EXTRA = "drm_scheme";
     public static final String DRM_LICENSE_URL_EXTRA = "drm_license_url";
@@ -155,6 +164,9 @@ public class PlayerActivity extends Activity {
 
     // Activity lifecycle
 
+    private ImageButton playButton;
+    private ImageButton pauseButton;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         String sphericalStereoMode = getIntent().getStringExtra(SPHERICAL_STEREO_MODE_EXTRA);
@@ -166,7 +178,6 @@ public class PlayerActivity extends Activity {
         if (CookieHandler.getDefault() != DEFAULT_COOKIE_MANAGER) {
             CookieHandler.setDefault(DEFAULT_COOKIE_MANAGER);
         }
-
         setContentView(R.layout.player_activity);
 
         debugRootView = findViewById(R.id.controls_root);
@@ -184,6 +195,18 @@ public class PlayerActivity extends Activity {
             trackSelectorParameters = new DefaultTrackSelector.ParametersBuilder().build();
             clearStartPosition();
         }
+
+
+        playButton = findViewById(R.id.exo_play);
+        pauseButton = findViewById(R.id.exo_pause);
+    }
+
+    private void performPlayBtnClick() {
+        runOnUiThread(() -> playButton.performClick());
+    }
+
+    private void performPauseBtnClick() {
+        runOnUiThread(() -> pauseButton.performClick());
     }
 
     private void initSphericalSurfaceView(String sphericalStereoMode) {
@@ -264,10 +287,10 @@ public class PlayerActivity extends Activity {
     public void onStop() {
         super.onStop();
         if (Util.SDK_INT > 23) {
-            if (playerView != null) {
-                playerView.onPause();
-            }
-            releasePlayer();
+//            if (playerView != null) {
+//                playerView.onPause();
+//            }
+//            releasePlayer();
         }
     }
 
@@ -495,6 +518,7 @@ public class PlayerActivity extends Activity {
         playerView.setErrorMessageProvider(new PlayerErrorMessageProvider());
         playerView.requestFocus();
     }
+
     private void initPlayerView2() {
         playerView.setPlayer(player);
         playerView.setPlaybackPreparer(() -> preparePlayback());
@@ -507,8 +531,10 @@ public class PlayerActivity extends Activity {
     private void setExoPlayer(Intent intent, DefaultDrmSessionManager<FrameworkMediaCrypto> drmSessionManager) {
         DefaultRenderersFactory renderersFactory = renderersFactory(intent);
         player = ExoPlayerFactory.newSimpleInstance(this, renderersFactory, trackSelector, drmSessionManager);
+        initAudioFocus();
         player.addListener(new PlayerEventListener());
         player.setPlayWhenReady(startAutoPlay);
+        setPlayWhenReady(startAutoPlay);
         player.addAnalyticsListener(new EventLogger(trackSelector));
     }
 
@@ -845,4 +871,143 @@ public class PlayerActivity extends Activity {
             return Pair.create(0, errorString);
         }
     }
+
+    // Audio Focus
+    private AudioManager audioManager;
+    private AudioAttributes audioAttributes;
+    private boolean shouldPlayWhenReady = false;
+    private final float MEDIA_VOLUME_DEFAULT = 1.0f;
+    private final float MEDIA_VOLUME_DUCK = 0.2f;
+
+    private void initAudioFocus() {
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioAttributes = new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_MEDIA).build();
+    }
+
+    void setPlayWhenReady(boolean playWhenReady) {
+        if (playWhenReady) {
+            requestAudioFocus();
+        } else {
+            abandonAudioFocus();
+        }
+    }
+
+    private void requestAudioFocus() {
+        int result;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            result = audioManager.requestAudioFocus(buildAudioFocusRequest());
+        } else {
+            result = audioManager.requestAudioFocus(audioFocusListener, audioAttributes.getContentType(), AudioManager.AUDIOFOCUS_GAIN);
+        }
+
+        // Call the listener whenever focus is granted - even the first time!
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            shouldPlayWhenReady = true;
+            audioFocusListener.onAudioFocusChange(AudioManager.AUDIOFOCUS_GAIN);
+        } else {
+            Log.w(TAG, "Playback not started: Audio focus request denied");
+        }
+    }
+
+    private void abandonAudioFocus() {
+        player.setPlayWhenReady(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioManager.abandonAudioFocusRequest(buildAudioFocusRequest());
+        } else {
+            audioManager.abandonAudioFocus(audioFocusListener);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private AudioFocusRequest buildAudioFocusRequest() {
+        return new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(audioAttributes)
+                .setOnAudioFocusChangeListener(audioFocusListener)
+                .build();
+    }
+
+    // TODO: 2020/3/13
+    private boolean isPlaying() {
+        return player != null
+                && player.getPlaybackState() != Player.STATE_ENDED
+                && player.getPlaybackState() != Player.STATE_IDLE
+                && player.getPlayWhenReady();
+    }
+
+    private AudioManager.OnAudioFocusChangeListener audioFocusListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            switch (focusChange) {
+                case AudioManager.AUDIOFOCUS_NONE:
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_NONE");
+                    break;
+
+                case AudioManager.AUDIOFOCUS_GAIN:  // 长时间获得AudioFocus
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN");
+                    if (shouldPlayWhenReady || player.getPlayWhenReady()) {
+                        player.setPlayWhenReady(true);
+                        player.setVolume(MEDIA_VOLUME_DEFAULT);
+
+                        if (!isPlaying()) {
+                            performPlayBtnClick();
+                        }
+                    }
+                    shouldPlayWhenReady = false;
+                    break;
+
+                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:    // 暂时获取焦点
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN_TRANSIENT");
+                    /**
+                     * 申请的AudioFocus是暂时性的，会很快用完释放的
+                     */
+                    break;
+
+                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:   // 应用跟其他应用共用焦点但播放的时候其他音频会降低音量
+                    /**
+                     * 暂时获取焦点. 正在使用AudioFocus的可以继续播放， 并降低音量
+                     * Example:voice memo recording and speech recognition
+                     */
+                    if (player.getPlayWhenReady()) {
+                        player.setVolume(MEDIA_VOLUME_DUCK);
+                    }
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK");
+                    break;
+
+                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE:
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE");
+                    break;
+
+                case AudioManager.AUDIOFOCUS_LOSS:  // 长时间失去了Audio Focus
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS");
+                    /**
+                     * 停止Audio播放，并释放 Media 资源。
+                     * 如果程序因为这个原因而失去AudioFocus，最好不要让它再次自动获得AudioFocus而继续播放，不然突然冒出来的声音会让用户感觉莫名其妙，感受很不好。这里直接放弃AudioFocus，当然也不用再侦听远程播放控制【如下面代码的处理】。要再次播放，除非用户再在界面上点击开始播放，才重新初始化Media，进行播放
+                     */
+                    abandonAudioFocus();
+                    performPauseBtnClick();
+                    releasePlayer();
+                    break;
+
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:    // 暂时失去AudioFocus
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS_TRANSIENT");
+                    /**
+                     * 暂时失去Audio Focus，并很快再次获得。必须停止Audio的播放，但是因为可能会很快再次获得AudioFocus，可以不释放Media资源
+                     */
+                    shouldPlayWhenReady = player.getPlayWhenReady();
+                    player.setPlayWhenReady(false);
+                    performPauseBtnClick();
+                    break;
+
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    /**
+                     * 暂时失去Audio Focus。 可以继续播放，降低音量
+                     */
+                    Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
+                    if (player.getPlayWhenReady()) {
+                        player.setVolume(MEDIA_VOLUME_DUCK);
+                    }
+                    break;
+            }
+        }
+    };
 }
