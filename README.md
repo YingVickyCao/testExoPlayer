@@ -13,7 +13,7 @@ https://exoplayer.dev/
 
 # 2 Log
 
-## Online video mp4
+## Online video mp4, player.setPlayWhenReady(true)
 
 ```
 
@@ -35,7 +35,7 @@ onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=128161,with=
 onPlayerStateChanged: playWhenReady=true,state=STATE_ENDED,duration=128161,with=1920
 ```
 
-## Downloaded video mp4
+## Downloaded video mp4, player.setPlayWhenReady(true)
 
 ```
 onPlayerStateChanged: playWhenReady=true,state=STATE_IDLE,duration=-9223372036854775807,with=0
@@ -56,7 +56,14 @@ onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=214274,with=
 onPlayerStateChanged: playWhenReady=true,state=STATE_ENDED,duration=214274,with=860
 ```
 
-## Online mp3
+## Downloaded video mp4, player.setPlayWhenReady(false);
+
+```
+onPlayerStateChanged: playWhenReady=false,state=STATE_BUFFERING,duration=-9223372036854775807,with=0
+onPlayerStateChanged: playWhenReady=false,state=STATE_READY,duration=214274,with=860
+```
+
+## Online mp3, player.setPlayWhenReady(true)
 
 ```
 onPlayerStateChanged: playWhenReady=true,state=STATE_IDLE,duration=-9223372036854775807,with=0
@@ -77,7 +84,7 @@ onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=59271,with=0
 onPlayerStateChanged: playWhenReady=true,state=STATE_ENDED,duration=59271,with=0
 ```
 
-## Downloaded mp3
+## Downloaded mp3, player.setPlayWhenReady(true)
 
 ```
 onPlayerStateChanged: playWhenReady=true,state=STATE_IDLE,duration=-9223372036854775807,with=0
@@ -97,7 +104,7 @@ onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=198452,with=
 onPlayerStateChanged: playWhenReady=true,state=STATE_ENDED,duration=198452,with=0
 ```
 
-## HLS
+## HLS, player.setPlayWhenReady(true)
 
 ```
 onPlayerStateChanged: playWhenReady=true,state=STATE_IDLE,duration=-9223372036854775807,with=0
