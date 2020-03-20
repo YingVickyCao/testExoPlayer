@@ -716,10 +716,46 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
         return false;
     }
 
+    private String printState(@Player.State int playbackState) {
+        switch (playbackState) {
+            case Player.STATE_IDLE:
+                return "STATE_IDLE";
+
+            case Player.STATE_BUFFERING:
+                return "STATE_BUFFERING";
+
+            case Player.STATE_READY:
+                return "STATE_READY";
+
+            case Player.STATE_ENDED:
+                return "STATE_ENDED";
+        }
+        return "InValid state";
+    }
+
+    private long getDuration() {
+        if (null == player) {
+            return 0;
+        }
+        return player.getDuration();
+    }
+
+    private long getVideoWidth() {
+        if (null == player) {
+            return 0;
+        }
+        Format videoFormat = player.getVideoFormat();
+        if (null == videoFormat) {
+            return 0;
+        }
+        return videoFormat.width;
+    }
+
     private class PlayerEventListener implements Player.EventListener {
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, @Player.State int playbackState) {
+            Log.d(TAG, "onPlayerStateChanged: playWhenReady=" + playWhenReady + ",state=" + printState(playbackState) + ",duration=" + getDuration() + ",with=" + getVideoWidth());
             if (playbackState == Player.STATE_ENDED) {
                 showControls();
             }
