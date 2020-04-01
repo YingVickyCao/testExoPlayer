@@ -177,6 +177,50 @@ Condition : state=STATE_READY && duration
 
 ExoPlayer release-v2 not have onPrepare().
 
+# 7 Player state changes
+
+```java
+player.addListener(new PlayerEventListener()); // Player.EventListener
+
+public void onPlayerStateChanged(boolean playWhenReady, @Player.State int playbackState)
+```
+
+| Value           | Desc                                                    |
+| --------------- | ------------------------------------------------------- |
+| STATE_IDLE      | Not have any media to play / failure                    |
+| STATE_BUFFERING | load more data to be able to play from current position |
+| STATE_READY     | play / pause (getPlayWhenReady() = true/false)          |
+| STATE_ENDED     | finish playing media                                    |
+
+# 8 Player errors
+
+```java
+
+player.addListener(new PlayerEventListener()); // Player.EventListener
+// Case 1 :
+class PlayerEventListener implements Player.EventListener{
+    public void onPlayerError(ExoPlaybackException e){
+    }
+}
+
+// Case 2 :
+class PlayerEventListener implements Player.EventListener{
+    void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections){
+    }
+}
+
+
+// Case 3:
+private class PlayerErrorMessageProvider implements ErrorMessageProvider<ExoPlaybackException> {
+    @Override
+    public Pair<Integer, String> getErrorMessage(ExoPlaybackException e) {
+        // ...
+    }
+}
+```
+
+STATE_IDLE + mError is not null -> play failure occurs
+
 # TO DO
 
 https://blog.csdn.net/zp0203/article/details/52181670
