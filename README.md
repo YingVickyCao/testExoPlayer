@@ -113,10 +113,10 @@ onPlayerStateChanged: playWhenReady=true,state=STATE_BUFFERING,duration=-9223372
 onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800000,with=400
 
 // Pause
-onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800000,with=400
+onPlayerStateChanged: playWhenReady=false,state=STATE_READY,duration=1800000,with=400
 
 // Resume
-onPlayerStateChanged: playWhenReady=false,state=STATE_READY,duration=1800000,with=400
+onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800000,with=400
 
 // Seek
 onPlayerStateChanged: playWhenReady=true,state=STATE_BUFFERING,duration=1800000,with=400
@@ -130,11 +130,50 @@ onPlayerStateChanged: playWhenReady=true,state=STATE_ENDED,duration=1800000,with
 
 When onTimelineChanged invorked.
 
-# 4 When can get video width and height?
+# 4 When can get video width or height? or When video is prepared welll to play, and can set SurfaceView?
 
 onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800000,with=400
 
-# 5 MediaPlayer -> ExoPlayer, how to listen onPrepare()?
+Condition : state=STATE_READY && duration > 0 && with/height > 0
+
+```java
+  public void setPlayer(@Nullable Player player) {
+    Assertions.checkState(Looper.myLooper() == Looper.getMainLooper());
+    Assertions.checkArgument(
+        player == null || player.getApplicationLooper() == Looper.getMainLooper());
+    if (this.player == player) {
+      return;
+    }
+    @Nullable Player oldPlayer = this.player;
+    if (oldPlayer != null) {
+      oldPlayer.removeListener(componentListener);
+      @Nullable Player.VideoComponent oldVideoComponent = oldPlayer.getVideoComponent();
+      if (oldVideoComponent != null) {
+        oldVideoComponent.removeVideoListener(componentListener);
+        oldVideoComponent.clearVideoSurfaceView((SurfaceView) surfaceView);
+      }
+    }
+    this.player = player;
+    if (useController()) {
+      controller.setPlayer(player);
+    }
+    if (player != null) {
+      @Nullable Player.VideoComponent newVideoComponent = player.getVideoComponent();
+        newVideoComponent.setVideoSurfaceView((SurfaceView) surfaceView);
+        newVideoComponent.addVideoListener(componentListener);
+      }
+      player.addListener(componentListener);
+    }
+  }
+```
+
+# 5 When can get audio duration ?
+
+onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800000,with=400
+
+Condition : state=STATE_READY && duration
+
+# 6 MediaPlayer -> ExoPlayer, how to listen onPrepare()?
 
 ExoPlayer release-v2 not have onPrepare().
 
