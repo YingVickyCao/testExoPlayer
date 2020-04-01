@@ -221,6 +221,28 @@ private class PlayerErrorMessageProvider implements ErrorMessageProvider<ExoPlay
 
 STATE_IDLE + mError is not null -> play failure occurs
 
+# 9 Seeking
+
+```java
+player.seekTo(long positionMs); // For simple
+/
+player.seekTo(int windowIndex, long positionMs) // For With ads / simple
+/
+com.google.android.exoplayer2.ControlDispatcher controlDispatcher.dispatchSeekTo(player, windowIndex, positionMs) //  For With ads / simple
+```
+
+# 10 Log for debugging playback issues
+
+By default ExoPlayer only logs errors.
+
+How to see detail logs:
+
+```
+// In Debug mode
+player.addAnalyticsListener(new EventLogger(trackSelector));
+
+```
+
 # TO DO
 
 https://blog.csdn.net/zp0203/article/details/52181670

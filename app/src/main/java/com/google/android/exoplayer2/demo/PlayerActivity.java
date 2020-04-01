@@ -966,4 +966,8 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
             }
         }
     };
+
+    private void test(){
+        player.seekTo(1000);
+    }
 }
