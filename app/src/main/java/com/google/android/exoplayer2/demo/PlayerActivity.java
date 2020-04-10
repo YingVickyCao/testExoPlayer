@@ -159,7 +159,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     private boolean isShowingTrackSelectionDialog;
 
     private DataSource.Factory dataSourceFactory;
-    private SimpleExoPlayer player;
+    private SimpleExoPlayer mPlayer;
     private MediaSource mediaSource;
     private DefaultTrackSelector trackSelector;
     private DefaultTrackSelector.Parameters trackSelectorParameters;
@@ -270,7 +270,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     @Override
     public void onResume() {
         super.onResume();
-        if (Util.SDK_INT <= 23 || player == null) {
+        if (Util.SDK_INT <= 23 || mPlayer == null) {
             initializePlayer();
             if (playerView != null) {
                 playerView.onResume();
@@ -361,7 +361,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
 
     @Override
     public void preparePlayback() {
-        player.retry();
+        mPlayer.retry();
     }
 
     // PlaybackControlView.VisibilityListener implementation
@@ -374,7 +374,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     // Internal methods
 
     private void initializePlayer() {
-        if (player == null) {
+        if (mPlayer == null) {
             Intent intent = getIntent();
 
             mediaSource = createTopLevelMediaSource(intent);
@@ -403,27 +403,27 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
             trackSelector.setParameters(trackSelectorParameters);
             lastSeenTrackGroupArray = null;
 
-            player = new SimpleExoPlayer.Builder(/* context= */ this, renderersFactory)
+            mPlayer = new SimpleExoPlayer.Builder(/* context= */ this, renderersFactory)
                     .setTrackSelector(trackSelector)
                     .build();
             initAudioFocus();
-            player.addListener(new PlayerEventListener());
-            player.setPlayWhenReady(startAutoPlay);
+            mPlayer.addListener(new PlayerEventListener());
+            mPlayer.setPlayWhenReady(startAutoPlay);
             setPlayWhenReady(startAutoPlay);
-            player.addAnalyticsListener(new EventLogger(trackSelector));
-            playerView.setPlayer(player);
+            mPlayer.addAnalyticsListener(new EventLogger(trackSelector));
+            playerView.setPlayer(mPlayer);
             playerView.setPlaybackPreparer(this);
-            debugViewHelper = new DebugTextViewHelper(player, debugTextView);
+            debugViewHelper = new DebugTextViewHelper(mPlayer, debugTextView);
             debugViewHelper.start();
             if (adsLoader != null) {
-                adsLoader.setPlayer(player);
+                adsLoader.setPlayer(mPlayer);
             }
         }
         boolean haveStartPosition = startWindow != C.INDEX_UNSET;
         if (haveStartPosition) {
-            player.seekTo(startWindow, startPosition);
+            mPlayer.seekTo(startWindow, startPosition);
         }
-        player.prepare(mediaSource, !haveStartPosition, false);
+        mPlayer.prepare(mediaSource, !haveStartPosition, false);
         updateButtonVisibility();
     }
 
@@ -581,13 +581,14 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     }
 
     private void releasePlayer() {
-        if (player != null) {
+        if (mPlayer != null) {
+            abandonAudioFocus();
             updateTrackSelectorParameters();
             updateStartPosition();
             debugViewHelper.stop();
             debugViewHelper = null;
-            player.release();
-            player = null;
+            mPlayer.release();
+            mPlayer = null;
             mediaSource = null;
             trackSelector = null;
         }
@@ -612,10 +613,10 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     }
 
     private void updateStartPosition() {
-        if (player != null) {
-            startAutoPlay = player.getPlayWhenReady();
-            startWindow = player.getCurrentWindowIndex();
-            startPosition = Math.max(0, player.getContentPosition());
+        if (mPlayer != null) {
+            startAutoPlay = mPlayer.getPlayWhenReady();
+            startWindow = mPlayer.getCurrentWindowIndex();
+            startPosition = Math.max(0, mPlayer.getContentPosition());
         }
     }
 
@@ -687,7 +688,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
 
     private void updateButtonVisibility() {
         selectTracksButton.setEnabled(
-                player != null && TrackSelectionDialog.willHaveContent(trackSelector));
+                mPlayer != null && TrackSelectionDialog.willHaveContent(trackSelector));
     }
 
     private void showControls() {
@@ -734,17 +735,17 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     }
 
     private long getDuration() {
-        if (null == player) {
+        if (null == mPlayer) {
             return 0;
         }
-        return player.getDuration();
+        return mPlayer.getDuration();
     }
 
     private long getVideoWidth() {
-        if (null == player) {
+        if (null == mPlayer) {
             return 0;
         }
-        Format videoFormat = player.getVideoFormat();
+        Format videoFormat = mPlayer.getVideoFormat();
         if (null == videoFormat) {
             return 0;
         }
@@ -866,7 +867,10 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     }
 
     private void abandonAudioFocus() {
-        player.setPlayWhenReady(false);
+        if (null == mPlayer) {
+            return;
+        }
+        mPlayer.setPlayWhenReady(false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             audioManager.abandonAudioFocusRequest(buildAudioFocusRequest());
         } else {
@@ -884,10 +888,10 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
 
     // TODO: 2020/3/13
     private boolean isPlaying() {
-        return player != null
-                && player.getPlaybackState() != Player.STATE_ENDED
-                && player.getPlaybackState() != Player.STATE_IDLE
-                && player.getPlayWhenReady();
+        return mPlayer != null
+                && mPlayer.getPlaybackState() != Player.STATE_ENDED
+                && mPlayer.getPlaybackState() != Player.STATE_IDLE
+                && mPlayer.getPlayWhenReady();
     }
 
     private AudioManager.OnAudioFocusChangeListener audioFocusListener = new AudioManager.OnAudioFocusChangeListener() {
@@ -900,15 +904,17 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
 
                 case AudioManager.AUDIOFOCUS_GAIN:  // 长时间获得AudioFocus
                     Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN");
-                    if (shouldPlayWhenReady || player.getPlayWhenReady()) {
-                        player.setPlayWhenReady(true);
-                        player.setVolume(MEDIA_VOLUME_DEFAULT);
+                    if (null != mPlayer) {
+                        if (shouldPlayWhenReady || mPlayer.getPlayWhenReady()) {
+                            mPlayer.setPlayWhenReady(true);
+                            mPlayer.setVolume(MEDIA_VOLUME_DEFAULT);
 
-                        if (!isPlaying()) {
-                            performPlayBtnClick();
+                            if (!isPlaying()) {
+                                performPlayBtnClick();
+                            }
                         }
+                        shouldPlayWhenReady = false;
                     }
-                    shouldPlayWhenReady = false;
                     break;
 
                 case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:    // 暂时获取焦点
@@ -923,8 +929,8 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
                      * 暂时获取焦点. 正在使用AudioFocus的可以继续播放， 并降低音量
                      * Example:voice memo recording and speech recognition
                      */
-                    if (player.getPlayWhenReady()) {
-                        player.setVolume(MEDIA_VOLUME_DUCK);
+                    if (mPlayer.getPlayWhenReady()) {
+                        mPlayer.setVolume(MEDIA_VOLUME_DUCK);
                     }
                     Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK");
                     break;
@@ -949,8 +955,8 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
                     /**
                      * 暂时失去Audio Focus，并很快再次获得。必须停止Audio的播放，但是因为可能会很快再次获得AudioFocus，可以不释放Media资源
                      */
-                    shouldPlayWhenReady = player.getPlayWhenReady();
-                    player.setPlayWhenReady(false);
+                    shouldPlayWhenReady = mPlayer.getPlayWhenReady();
+                    mPlayer.setPlayWhenReady(false);
                     performPauseBtnClick();
                     break;
 
@@ -959,15 +965,15 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
                      * 暂时失去Audio Focus。 可以继续播放，降低音量
                      */
                     Log.d(TAG, "onAudioFocusChange: AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
-                    if (player.getPlayWhenReady()) {
-                        player.setVolume(MEDIA_VOLUME_DUCK);
+                    if (mPlayer.getPlayWhenReady()) {
+                        mPlayer.setVolume(MEDIA_VOLUME_DUCK);
                     }
                     break;
             }
         }
     };
 
-    private void test(){
-        player.seekTo(1000);
+    private void test() {
+        mPlayer.seekTo(1000);
     }
 }

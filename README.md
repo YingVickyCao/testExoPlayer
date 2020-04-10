@@ -1,7 +1,9 @@
 # testExoPlayer
 
-https://github.com/google/Exoplayer  
-https://exoplayer.dev/
+| Exoplayer Version | Support Lib         |
+| ----------------- | ------------------- |
+| 2.9.6             | com.android.support |
+| `>` 2.9.6         | androidx            |
 
 # 1 Get time
 
@@ -233,16 +235,38 @@ com.google.android.exoplayer2.ControlDispatcher controlDispatcher.dispatchSeekTo
 
 # 10 Log for debugging playback issues
 
-By default ExoPlayer only logs errors.
-
+By default ExoPlayer only logs errors.  
 How to see detail logs:
 
 ```
 // In Debug mode
 player.addAnalyticsListener(new EventLogger(trackSelector));
-
 ```
+
+# 11 流媒体
+
+## 优势
+
+- 体积更小
+  | Value | Desc |
+  | -------- | ------- |
+  | hls.m3u8 | 2 kb |
+  | mp4.mp4 | 33.5 mb |
+  | mp3.mp3 | 3.4 mb |
+- seek to 后，直接到对应位置，不用下载多余的部分
+- 真正播放的内容存在服务器
+- 自适应：根据网络情况，自动调整清晰度
+- 直播
+
+## 劣势
+
+- 下载实现很复杂，而且很多格式不支持下载
 
 # TO DO
 
 https://blog.csdn.net/zp0203/article/details/52181670
+
+# Refs:
+
+https://github.com/google/Exoplayer  
+https://exoplayer.dev/
