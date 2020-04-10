@@ -47,3 +47,6 @@ http://nhkmovs-i.akamaihd.net/i/design-ah/mov/vol130.mp4/segment13_0_av.ts?e=688
 http://nhkmovs-i.akamaihd.net/i/design-ah/mov/vol130.mp4/segment14_0_av.ts?e=6889c9ad1087852b
 #EXT-X-ENDLIST
 ```
+
+-> `http://nhkmovs-i.akamaihd.net/i/design-ah/mov/vol130.mp4/segment1_0_av.ts?e=6889c9ad1087852b` -> `segment1_0_av.ts`
+点击不能直接播放，因为加密了，需要解密后才能播放

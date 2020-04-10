@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Misc",
+    "samples": [
+      {
+        "name": "Online MP4",
+        "uri": "https://storage.googleapis.com/exoplayer-test-media-1/gen-3/screens/dash-vod-single-segment/video-137.mp4"
+      },
+      {
+        "name": "Downloaded MP4",
+        "uri": "/sdcard/mp4.mp4"
+      },
+      {
+        "name": "Online MP3",
+        "uri": "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3"
+      },
+      {
+        "name": "Downloaded MP3",
+        "uri": "/sdcard/mp3_1.mp3"
+      },
+      {
+        "name": "HLS",
+        "uri": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"
+      }
+    ]
+  }
+]
