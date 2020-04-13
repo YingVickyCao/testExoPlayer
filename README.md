@@ -5,6 +5,8 @@
 | 2.9.6             | com.android.support |
 | `>` 2.9.6         | androidx            |
 
+- ExoPlayer instances must be accessed from a single application thread.
+
 # 1 Get time
 
 | Without Ads           | If not have Ads,equal. <br/>If have, about current content | -                    |
@@ -261,6 +263,38 @@ player.addAnalyticsListener(new EventLogger(trackSelector));
 ## 劣势
 
 - 下载实现很复杂，而且很多格式不支持下载
+
+## 流媒体传输协议
+
+| 协议             | Smooth Streaming | Http Live Steaming | MPEG-Dash |
+| ---------------- | ---------------- | ------------------ | --------- |
+| 规范             | Microsoft        | Apple              | 通用标准  |
+| 协议             | HTTP             | HTTP               | HTTP      |
+| 最常见媒体格式   | MP4              | TS (MTS/MPEG-TS)   | mp4/3GP   |
+| 建议切片时间     | 2s               | 10s                | 灵活切片  |
+| 服务器端平均时延 | 必须连续         | 可分割             | 可分割    |
+| 服务器类型       | MS IIS           | HTTP               | HTTP      |
+| 常见使用         |                  | Apple              | YouTube   |
+
+- .TS =MPEG-TS = MTS = MPEG transport stream = transport stream  
+  .TS is an mpeg-2 or h.264 stream.
+- MP4 =MPEG 4 container.
+- .m2ts is an MPEG2 transport stream,not h.264
+- MPEG-2(TS,PS,ES)  
+  TS：传输流  
+  PS:节目流
+
+- normal mp4 vs fmp4?  
+  mp4 = Non-Fragmented MP4.  
+  含义是 MPEG-4 Part14，是 MPEG 标准中的 14 部分
+
+  fmp4 = Fragmented MP4 = FFMpeg MPEG-4。
+  MPEG-4 Part12。  
+  是 Dash 采用的媒体文件格式。
+  扩展名通常为.m4s/.mp4
+
+- .mpd  
+  Media Presentation Descriptor file
 
 # TO DO
 

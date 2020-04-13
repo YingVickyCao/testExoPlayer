@@ -2,6 +2,8 @@
 
 - HLS(HTTP LIVE Streaming) 是什么？  
   苹果公司定义的用于直播的流媒体传输协议。
+- 什么是流媒体？
+  媒体数据包连续不断地从发送端发往接受端。
 
 - HLS 的工作原理
   把整个流分成一个个小的基于 HTTP 的文件来下载，每次只下载一些。当媒体流正在播放时，客户端可以选择从许多不同的备用源中以不同的速率下载同样的资源，允许流媒体会话适应不同的数据速率。
@@ -58,9 +60,30 @@ M3U8 文件里面会有属性告诉是直播，客户端会定时来请求新的
 .m3u8 -> .ts/.mp4/.aac,但.ts 是标准
 ```
 
-[HTTP Live Streaming](https://developer.apple.com/documentation/http_live_streaming)  
-[Adding Alternate Media to a Playlist](https://developer.apple.com/documentation/http_live_streaming/example_playlists_for_http_live_streaming/adding_alternate_media_to_a_playlist)  
-[Creating a Master Playlist]（https://developer.apple.com/documentation/http_live_streaming/example_playlists_for_http_live_streaming/creating_a_master_playlist）
+- HLS components
+
+![the components of an HTTP Live Stream](https://docs-assets.developer.apple.com/published/88e87744a3/de18e941-81de-482f-843d-834a4dd3aa71.png)
+
+`Media Encoder`（编码器）:  
+对采集的原始数据，包括音频、视频等进行编码。即：进行数字化和数据压缩.  
+codify video files in H.264 formart and audio in AAC,MP3, or EC-3.
+This is encapsulated by MPEG-2 Transport Strean to carrt it.
+
+`Media Segmenter`（分割器）：  
+把 MPEG-2 TS file 分成等长的媒体片段 .ts ，每个片段都是单独的文件。但通过这些连读的片段可以得到连读的流序列；  
+产生索引文件；  
+加密媒体片段，创建密钥 KEY，用来客户端正确解密。
+
+`Index File` 索引文件(m3u8）
+
+·Media clips/Fragments`(媒体切片)
+
+`Distibution`分发器:  
+网络服务器。讲分割好的媒体切片和索引文件，通过 HTTP 传递给客户端，可能会设计 CDS。
+
+`Client客户端`：  
+直播：客户端通过 HTTP 不断重新下载索引文件，来获得视频流的连续播放。  
+点播：客户端一次性获取索引文件，播放指定媒体文件。
 
 - m3u8 的标准定义  
   国际标准组织定义 m3u8 的 rfc doc：https://tools.ietf.org/html/draft-pantos-http-live-streaming-06
@@ -278,4 +301,7 @@ n 是一个十进制整型，表示截取片段大小（单位：字节）。
 - macOS 下载 HLS https://blog.csdn.net/DRL101/article/details/100168256
 - https://www.crifan.com/crawl_nickjr_com_cartoon_related_video_subtitle_data/
 - https://www.crifan.com/mac_how_download_m3u8_single_video_file/
-- m3u8 文件格式 https://www.jianshu.com/p/e97f6555a070
+- [m3u8 文件格式](https://www.jianshu.com/p/e97f6555a070)
+- [HTTP Live Streaming](https://developer.apple.com/documentation/http_live_streaming)
+- [Adding Alternate Media to a Playlist](https://developer.apple.com/documentation/http_live_streaming/example_playlists_for_http_live_streaming/adding_alternate_media_to_a_playlist)
+- [Creating a Master Playlist](https://developer.apple.com/documentation/http_live_streaming/example_playlists_for_http_live_streaming/creating_a_master_playlist)
