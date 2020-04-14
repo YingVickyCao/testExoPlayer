@@ -463,3 +463,5 @@ https://blog.csdn.net/zp0203/article/details/52181670
 - [Interactive Media Ads SDKs](https://developers.google.com/interactive-media-ads/docs/sdks/html5/tags)
 - [Google Cast - Use Media Tracks](https://developers.google.com/cast/docs/android_sender/media_tracks)
 - [Supported media formats](https://developer.android.google.cn/guide/topics/media/media-formats#image-formats)
+- [AudioManager](https://www.runoob.com/w3cnote/android-tutorial-audiomanager.html)
+- [AudioFocus](https://developer.android.google.cn/guide/topics/media-apps/audio-focus#java)
