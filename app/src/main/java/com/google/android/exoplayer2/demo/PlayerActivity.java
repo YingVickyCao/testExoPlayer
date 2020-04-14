@@ -88,6 +88,7 @@ import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.ErrorMessageProvider;
 import com.google.android.exoplayer2.util.EventLogger;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.VideoListener;
 
 import java.lang.reflect.Constructor;
 import java.net.CookieHandler;
@@ -158,6 +159,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     private TextView debugTextView;
     private boolean isShowingTrackSelectionDialog;
 
+    private MyVideoListener mVideoListener;
     private DataSource.Factory dataSourceFactory;
     private SimpleExoPlayer mPlayer;
     private MediaSource mediaSource;
@@ -408,6 +410,8 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
                     .build();
             initAudioFocus();
             mPlayer.addListener(new PlayerEventListener());
+            mVideoListener = new MyVideoListener();
+            mPlayer.addVideoListener(mVideoListener);
             mPlayer.setPlayWhenReady(startAutoPlay);
             setPlayWhenReady(startAutoPlay);
             mPlayer.addAnalyticsListener(new EventLogger(trackSelector));
@@ -587,6 +591,9 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
             updateStartPosition();
             debugViewHelper.stop();
             debugViewHelper = null;
+            if (null != mVideoListener) {
+                mPlayer.removeVideoListener(mVideoListener);
+            }
             mPlayer.release();
             mPlayer = null;
             mediaSource = null;
@@ -752,6 +759,17 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
         return videoFormat.width;
     }
 
+    private long getVideoHeight() {
+        if (null == mPlayer) {
+            return 0;
+        }
+        Format videoFormat = mPlayer.getVideoFormat();
+        if (null == videoFormat) {
+            return 0;
+        }
+        return videoFormat.height;
+    }
+
     private class PlayerEventListener implements Player.EventListener {
 
         @Override
@@ -826,6 +844,23 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
                 }
             }
             return Pair.create(0, errorString);
+        }
+    }
+
+    private class MyVideoListener implements VideoListener {
+        @Override
+        public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+            Log.d(TAG, "onVideoSizeChanged: width=" + width + ",height=" + height);
+        }
+
+        @Override
+        public void onSurfaceSizeChanged(int width, int height) {
+            Log.d(TAG, "onSurfaceSizeChanged: width=" + width + ",height=" + height + ",duration=" + getDuration() + ",with=" + getVideoWidth() + ",height=" + getVideoHeight());
+        }
+
+        @Override
+        public void onRenderedFirstFrame() {
+            Log.d(TAG, "onRenderedFirstFrame:,duration = " + getDuration() + ", with = " + getVideoWidth() + ",height=" + getVideoHeight());
         }
     }
 
