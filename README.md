@@ -144,7 +144,7 @@ When onTimelineChanged invorked.
 
 # 4 When can get video width or height? or When video is prepared welll to play, and can set SurfaceView?
 
-onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800000,with=400
+Way 1 ： onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800000,with=400
 
 Condition : state=STATE_READY && duration > 0 && with/height > 0
 
@@ -178,6 +178,37 @@ Condition : state=STATE_READY && duration > 0 && with/height > 0
     }
   }
 ```
+
+Way 2 : onVideoSizeChanged
+
+```
+// Init
+onPlayerStateChanged: playWhenReady=true,state=STATE_IDLE,duration=-9223372036854775807,with=0,height=0
+onAudioFocusChange: AUDIOFOCUS_GAIN
+onPlayerStateChanged: playWhenReady=true,state=STATE_BUFFERING,duration=-9223372036854775807,with=0,height=0
+onSurfaceSizeChanged: width=1600,height=2398,duration=-9223372036854775807,with=0,height=0
+
+// Play
+onVideoSizeChanged: width=1920,height=1080,duration=1800045,with=1920,height=1080
+onSurfaceSizeChanged: width=1600,height=900,duration=1800045,with=416,height=234
+onRenderedFirstFrame:,duration = 1800045, with = 416,height=234
+onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800045,with=416,height=234
+
+// Seek
+onRenderedFirstFrame:,duration = 1800045, with = 416,height=234
+onRenderedFirstFrame:,duration = 1800045, with = 416,height=234
+onPlayerStateChanged: playWhenReady=true,state=STATE_READY,duration=1800045,with=416,height=234
+
+// Back
+onSurfaceSizeChanged: width=0,height=0,duration=1800045,with=416,height=234
+onPlayerStateChanged: playWhenReady=false,state=STATE_BUFFERING,duration=1800045,with=416,height=234
+```
+
+- onRenderedFirstFrame  
+  可以调用多次。  
+  调用在 onPlayerStateChanged state=STATE_READY 之前。
+- onVideoSizeChanged  
+  调用 1 次
 
 # 5 When can get audio duration ?
 
@@ -253,7 +284,31 @@ How to see detail logs:
 player.addAnalyticsListener(new EventLogger(trackSelector));
 ```
 
-# 11 流媒体
+# 11 Next track listener
+
+```java
+@Override
+public void onPositionDiscontinuity(int reason) {
+    if (null == mPlayer) {
+        return;
+    }
+    int newIndex = mPlayer.getCurrentWindowIndex();
+    if (newIndex != currentIndex) {
+        // The index has changed, update the UI to show info for source at newIndex.
+        Log.d(TAG, "onPositionDiscontinuity: currentIndex=" + currentIndex + ",newIndex=" + newIndex);
+        currentIndex = newIndex;
+    }
+}
+```
+
+# 12 Change playback speed
+
+```java
+PlaybackParameters parameters = new PlaybackParameters(2f);
+mPlayer.setPlaybackParameters(parameters);
+```
+
+# 流媒体
 
 ## 优势
 
@@ -329,9 +384,14 @@ player.addAnalyticsListener(new EventLogger(trackSelector));
   打包视频流、音频流、字幕、以及其他信息到一个文件，这个文件就叫容器格式。
 - 字幕文件  
   格式：WebVTT,SRT,TTML,Close Caption(为听力障碍设计)
+- Close Caption（CC 字幕）  
+  隐藏的带有解释意味的字幕（CAPTION），为听力障碍设计  
+  作用：无音状态下通过进行一些解释性的语言来描述当前画面中所发生的事情。
+
 - Subtitle  
-  对话翻译。  
+  对话翻译，一般的字幕。  
   为了翻译成不同的语言而设计。
+
 - 版权保护策略  
   `Widevine`：  
   Google 在 ICS 版本上推出的一种 `DRM 数字版权管理`功能：从 Google 指定的服务器上，下载 Google 加密的版权文件，例如视频等。
@@ -346,11 +406,37 @@ player.addAnalyticsListener(new EventLogger(trackSelector));
   渐进式。
   需要先缓冲一定数量的媒体数据才能开始播放。e.g, Mp4
 
+- Track
+  Adaptive streams normally contain multiple media tracks.  
+  There are often multiple tracks that contain same content in different qualities(e.g, SD,HD, and 4K video tracks).  
+  There may alse be multiple tracks of the same type containing different content(e.g, multiple audio tracks in different languages)
+
+  总结：  
+  同内容，不同分辨率；  
+  同内容，同分辨率，语言不同  
+  同内容，同分辨率，字幕不同  
+  Audio and video
+
+![adaptive_streams_track_text](https://yingvickycao.github.io/img/adaptive_streams_track_text.png)
+
+![adaptive_streams_track_audio](https://yingvickycao.github.io/img/adaptive_streams_track_audio.png)
+
+![adaptive_streams_track_video](https://yingvickycao.github.io/img/adaptive_streams_track_video.png)
+
+- IMA
+  Interactive Media Ads SDKs.  
+  互动媒体广告：点击跳转；X 等
+
 # TO DO
 
 https://blog.csdn.net/zp0203/article/details/52181670
 
 # Refs:
 
-https://github.com/google/Exoplayer  
-https://exoplayer.dev/
+- https://github.com/google/Exoplayer
+- https://exoplayer.dev/
+- [Interactive Media Ads SDKs](https://developers.google.com/interactive-media-ads/)
+- [Interactive Media Ads SDKs](https://developers.google.com/interactive-media-ads/docs/sdks/html5)
+- [Interactive Media Ads SDKs](https://developers.google.com/interactive-media-ads/docs/sdks/html5/tags)
+- [Google Cast - Use Media Tracks](https://developers.google.com/cast/docs/android_sender/media_tracks)
+- [Supported media formats](https://developer.android.google.cn/guide/topics/media/media-formats#image-formats)
