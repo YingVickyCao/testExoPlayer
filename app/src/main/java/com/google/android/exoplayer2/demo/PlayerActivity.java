@@ -45,6 +45,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.C.ContentType;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.PlaybackPreparer;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RenderersFactory;
@@ -170,6 +171,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
 
     private boolean startAutoPlay;
     private int startWindow;
+    private int currentIndex = -1;
     private long startPosition;
 
     // Fields used only for ad playback. The ads loader is loaded via reflection.
@@ -774,7 +776,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, @Player.State int playbackState) {
-            Log.d(TAG, "onPlayerStateChanged: playWhenReady=" + playWhenReady + ",state=" + printState(playbackState) + ",duration=" + getDuration() + ",with=" + getVideoWidth());
+            Log.d(TAG, "onPlayerStateChanged: playWhenReady=" + playWhenReady + ",state=" + printState(playbackState) + ",duration=" + getDuration() + ",with=" + getVideoWidth() + ",height=" + getVideoHeight());
             if (playbackState == Player.STATE_ENDED) {
                 showControls();
             }
@@ -809,6 +811,19 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
                     }
                 }
                 lastSeenTrackGroupArray = trackGroups;
+            }
+        }
+
+        @Override
+        public void onPositionDiscontinuity(int reason) {
+            if (null == mPlayer) {
+                return;
+            }
+            int newIndex = mPlayer.getCurrentWindowIndex();
+            if (newIndex != currentIndex) {
+                // The index has changed, update the UI to show info for source at newIndex.
+                Log.d(TAG, "onPositionDiscontinuity: currentIndex=" + currentIndex + ",newIndex=" + newIndex);
+                currentIndex = newIndex;
             }
         }
     }
@@ -850,7 +865,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
     private class MyVideoListener implements VideoListener {
         @Override
         public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-            Log.d(TAG, "onVideoSizeChanged: width=" + width + ",height=" + height);
+            Log.d(TAG, "onVideoSizeChanged: width=" + +width + ",height=" + height + ",duration=" + getDuration() + ",with=" + getVideoWidth() + ",height=" + getVideoHeight());
         }
 
         @Override
@@ -860,7 +875,7 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
 
         @Override
         public void onRenderedFirstFrame() {
-            Log.d(TAG, "onRenderedFirstFrame:,duration = " + getDuration() + ", with = " + getVideoWidth() + ",height=" + getVideoHeight());
+            Log.d(TAG, "onRenderedFirstFrame: duration = " + getDuration() + ", with = " + getVideoWidth() + ",height=" + getVideoHeight());
         }
     }
 
@@ -1007,6 +1022,14 @@ public class PlayerActivity extends AppCompatActivity implements OnClickListener
             }
         }
     };
+
+    private void changeSpeed() {
+        if (null == mPlayer) {
+            return;
+        }
+        PlaybackParameters parameters = new PlaybackParameters(2f);
+        mPlayer.setPlaybackParameters(parameters);
+    }
 
     private void test() {
         mPlayer.seekTo(1000);
