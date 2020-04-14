@@ -5,6 +5,14 @@
 | 2.9.6             | com.android.support |
 | `>` 2.9.6         | androidx            |
 
+| exoplayer (All)          | Part     |
+| ------------------------ | -------- |
+| exoplayer-core           | Required |
+| exoplayer-dash           | Optional |
+| exoplayer-hls            | Optional |
+| exoplayer-smothstreaming | Optional |
+| exoplayer-ui             | Optional |
+
 - ExoPlayer instances must be accessed from a single application thread.
 
 # 1 Get time
@@ -258,7 +266,11 @@ player.addAnalyticsListener(new EventLogger(trackSelector));
 - seek to 后，直接到对应位置，不用下载多余的部分
 - 真正播放的内容存在服务器
 - 自适应：根据网络情况，自动调整清晰度
-- 直播
+- 大规模用户接入
+- 适合直播、点播
+- 内容版权保护  
+  内存中维持一个较小的解码缓冲区，播放后得的媒体数据能随时清除，用户不容易截取和复制。
+  可利用 DRM 等版权保护系统进行加密处理。
 
 ## 劣势
 
@@ -266,24 +278,40 @@ player.addAnalyticsListener(new EventLogger(trackSelector));
 
 ## 流媒体传输协议
 
-| 协议             | Smooth Streaming | Http Live Steaming | MPEG-Dash |
-| ---------------- | ---------------- | ------------------ | --------- |
-| 规范             | Microsoft        | Apple              | 通用标准  |
-| 协议             | HTTP             | HTTP               | HTTP      |
-| 最常见媒体格式   | MP4              | TS (MTS/MPEG-TS)   | mp4/3GP   |
-| 建议切片时间     | 2s               | 10s                | 灵活切片  |
-| 服务器端平均时延 | 必须连续         | 可分割             | 可分割    |
-| 服务器类型       | MS IIS           | HTTP               | HTTP      |
-| 常见使用         |                  | Apple              | YouTube   |
+| 协议             | Smooth Streaming | Http Live Steaming | Dash     |
+| ---------------- | ---------------- | ------------------ | -------- |
+| 规范             | Microsoft        | Apple              | Adobe    |
+| 协议             | HTTP             | HTTP               | HTTP     |
+| 最常见媒体格式   | MP4              | TS (MTS/MPEG-TS)   | mp4/3GP  |
+| 建议切片时间     | 2s               | 10s                | 灵活切片 |
+| 服务器端平均时延 | 必须连续         | 可分割             | 可分割   |
+| 服务器类型       | MS IIS           | HTTP               | HTTP     |
+| 常见使用         |                  | Apple              | YouTube  |
 
-- .TS =MPEG-TS = MTS = MPEG transport stream = transport stream  
+- What is Adaptive Steaming？  
+  自适应流媒体
+
+  如何选择自适应技术？  
+  平台、协议、数字版权管理
+
+- Dash （MPEG-Dash）is short for `Dynamic Adaptive Steaming Over HTTP`, is an adaptive bitrate steaming.
+
+## 专业术语
+
+- .TS =MPEG-TS=MPEG2-TS = MTS = MPEG transport stream = transport stream  
   .TS is an mpeg-2 or h.264 stream.
 - MP4 =MPEG 4 container.
 - .m2ts is an MPEG2 transport stream,not h.264
-- MPEG-2(TS,PS,ES)  
+- MPEG-2 标准(TS,PS)  
   TS：传输流  
   PS:节目流
-
+- MPEG  
+  是一种压缩标准。分为 MPEG layer 1、MPEG layer 2、MPEG layer 3.
+- MP3
+  is short for `MPEG layer 3 / MPEG audio layer 3`  
+   一种有损的音频格式
+- WAV  
+  一种无损的音频格式
 - normal mp4 vs fmp4?  
   mp4 = Non-Fragmented MP4.  
   含义是 MPEG-4 Part14，是 MPEG 标准中的 14 部分
@@ -295,6 +323,28 @@ player.addAnalyticsListener(new EventLogger(trackSelector));
 
 - .mpd  
   Media Presentation Descriptor file
+
+- 容器格式？  
+  播放一个电影，就是至少播放一个视频流和一个音频流。  
+  打包视频流、音频流、字幕、以及其他信息到一个文件，这个文件就叫容器格式。
+- 字幕文件  
+  格式：WebVTT,SRT,TTML,Close Caption(为听力障碍设计)
+- Subtitle  
+  对话翻译。  
+  为了翻译成不同的语言而设计。
+- 版权保护策略  
+  `Widevine`：  
+  Google 在 ICS 版本上推出的一种 `DRM 数字版权管理`功能：从 Google 指定的服务器上，下载 Google 加密的版权文件，例如视频等。
+
+  PlayReady：微软，e.g, PlayReady SL2000
+
+  ClearKey
+
+  Flash Access:Adobe
+
+- Progressive?  
+  渐进式。
+  需要先缓冲一定数量的媒体数据才能开始播放。e.g, Mp4
 
 # TO DO
 
