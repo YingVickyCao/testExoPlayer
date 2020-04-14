@@ -14,10 +14,12 @@
 | exoplayer-ui             | Optional |
 
 - ExoPlayer instances must be accessed from a single application thread.
+- 测试  
+  https://bitmovin.com/mpeg-dash-hls-examples-sample-streams/
 
 # 1 Get time
 
-| Without Ads           | If not have Ads,equal. <br/>If have, about current content | -                    |
+| Without Ads           | If not have Ads,equal. <br/>If have, about current content | ms                   |
 | --------------------- | ---------------------------------------------------------- | -------------------- |
 | getDuration()         | getContentDuration()                                       | 获取视频总时长       |
 | getCurrentPosition()  | getContentPosition()                                       | 获取视频当前播放时间 |
@@ -307,6 +309,27 @@ public void onPositionDiscontinuity(int reason) {
 PlaybackParameters parameters = new PlaybackParameters(2f);
 mPlayer.setPlaybackParameters(parameters);
 ```
+
+# 13 Q:getCurrentPosition is bigger than getDuration?
+
+A:  
+media file has wrong media information.
+
+# 14 TBD:[Timeline](https://exoplayer.dev/doc/reference/com/google/android/exoplayer2/Timeline.html)、[Window](https://exoplayer.dev/doc/reference/com/google/android/exoplayer2/Timeline.Window.html)、[Period](https://exoplayer.dev/doc/reference/com/google/android/exoplayer2/Timeline.Period.html)
+
+Timeline:representation structure of media.  
+e.g,compositions of media such as playlists,streams with inserted ads,live streams  
+Timeline = Period + Window
+
+# 15 MediaSource
+
+| Type                   | Desc             |
+| ---------------------- | ---------------- |
+| AdsMediaSource         | Ads              |
+| HlsMediaSource         | HLS              |
+| SsMediaSource          | Smooth Streaming |
+| DashMediaSource        | Dash             |
+| ProgressiveMediaSource | Normal           |
 
 # 流媒体
 

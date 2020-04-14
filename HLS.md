@@ -60,6 +60,18 @@ M3U8 文件里面会有属性告诉是直播，客户端会定时来请求新的
 .m3u8 -> .ts/.mp4/.aac,但.ts 是标准
 ```
 
+- [m3u8 的类型](https://www.cnblogs.com/tocy/p/hls-playlist-example.html)  
+  点播（VOD，Video On Demand）playlist  
+   Event playlist  
+   直播 playlist（滑动窗口）  
+   byte-range playlist  
+   包含密钥的 playlist  
+   内嵌广告的 playlist  
+   master playlist  
+   包含 alternate media 的 playlist  
+   I-frame playlist  
+   包含 session 的 master playlist
+
 - HLS components
 
 ![the components of an HTTP Live Stream](https://docs-assets.developer.apple.com/published/88e87744a3/de18e941-81de-482f-843d-834a4dd3aa71.png)
@@ -305,3 +317,4 @@ n 是一个十进制整型，表示截取片段大小（单位：字节）。
 - [HTTP Live Streaming](https://developer.apple.com/documentation/http_live_streaming)
 - [Adding Alternate Media to a Playlist](https://developer.apple.com/documentation/http_live_streaming/example_playlists_for_http_live_streaming/adding_alternate_media_to_a_playlist)
 - [Creating a Master Playlist](https://developer.apple.com/documentation/http_live_streaming/example_playlists_for_http_live_streaming/creating_a_master_playlist)
+- [Live Playlist](https://developer.apple.com/documentation/http_live_streaming/example_playlists_for_http_live_streaming/live_playlist_sliding_window_construction)
