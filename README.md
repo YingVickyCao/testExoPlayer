@@ -366,12 +366,37 @@ Timeline = Period + Window
 | 服务器类型       | MS IIS           | HTTP               | HTTP     |
 | 常见使用         |                  | Apple              | YouTube  |
 
+- 直播协议
+  | Types | 使用场景 | 使用什么协议传输 |
+  | -------- | --------------------------- | ---------------- |
+  | RTMP | 点播。FlashPlayer | TCP |
+  | HTTP | |HTTP
+  | HLS | | HTTP |
+  | Dash | |-
+  | RTP | 视频监控、视频会议、IP 电话 | UDP |
+  | HTTP-FLV | | HTTP |
+
+- RTP  
+  Real-time Transport Protocol，传输层协议。  
+  实际应用场景下经常需要 RTCP（RTP Control Protocol）配合来使用，可以简单理解为 RTCP 传输交互控制的信令，RTP 传输实际的媒体数据。
+  视频监控、视频会议、IP 电话
+
+- RTMP  
+  RTMP 是 Real Time Messaging Protocol（实时消息传输协议）  
+  RTMP 是 Real 是一个协议族，包括 RTMP 基本协议及 RTMPT/RTMPS/RTMPE 等多种变种。  
+  属于 TCP/IP 四层模型的应用层  
+  私有协议，Adobe。  
+  rtmp 现在大部分国外的 CDN 已不支持，在国内流行度很高
+
 - What is Adaptive Steaming？  
   自适应流媒体
 
   如何选择自适应技术？  
   平台、协议、数字版权管理
 
+- 推流 / 拉流  
+  推流，指的是把采集阶段封包好的内容传输到服务器的过程。推流端->服务器
+  拉流：服务器 -> CDN -> 播放端
 - Dash （MPEG-Dash）is short for `Dynamic Adaptive Steaming Over HTTP`, is an adaptive bitrate steaming.
 
 ## 专业术语
